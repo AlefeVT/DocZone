@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
-import { Navbar } from '../components/landingPage/Navbar';
-import Footer from '../components/landingPage/Footer';
+import { Navbar } from '../_components/landingPage/Navbar';
+import Footer from '../_components/landingPage/Footer';
 
 export default function StoreFrontLayout({
   children,

@@ -20,7 +20,6 @@ export async function Navbar() {
       <div className="flex items-center">
         {user ? (
           <>
-            
             <UserDropdown
               email={user.email as string}
               name={user.name as string}

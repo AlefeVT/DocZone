@@ -1,32 +1,30 @@
-'use server';
+import { PrismaClient } from '@prisma/client';
+import { currentUser } from '@/lib/auth';
 
-import { promises as fs } from 'fs';
-import path from 'path';
+const prisma = new PrismaClient();
 
-export async function saveImageToPublic(formData: FormData): Promise<string> {
-  try {
-    const file = formData.get('image') as File;
-    if (!file) {
-      throw new Error('Arquivo não encontrado no FormData');
-    }
+export async function getUserFileKey() {
+  const user = await currentUser();
 
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const ext = path.extname(file.name);
-    const fileName = `${uniqueSuffix}${ext}`;
-
-    const publicDir = path.join(process.cwd(), 'public', 'uploads');
-
-    await fs.mkdir(publicDir, { recursive: true });
-
-    const filePath = path.join(publicDir, fileName);
-
-    const buffer = Buffer.from(await file.arrayBuffer());
-
-    await fs.writeFile(filePath, buffer);
-
-    return `/uploads/${fileName}`;
-  } catch (error) {
-    console.error('Erro ao salvar a imagem:', error);
-    throw new Error(`Erro ao salvar a imagem`);
+  if (!user || !user.id) {
+    throw new Error('Usuário não autenticado');
   }
+
+  const fileRecord = await prisma.file.findFirst({
+    where: {
+      userId: user.id,
+    },
+    select: {
+      key: true,
+    },
+    orderBy: {
+      createdAt: 'desc', // Ordena para pegar o arquivo mais recente, se houver mais de um
+    },
+  });
+
+  if (!fileRecord || !fileRecord.key) {
+    throw new Error('Nenhum arquivo encontrado para este usuário');
+  }
+
+  return fileRecord.key;
 }
