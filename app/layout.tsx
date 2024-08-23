@@ -7,7 +7,8 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'DocZone',
-  description: 'Organize, Assine e Controle Seus Documentos com Facilidade e Segurança',
+  description:
+    'Organize, Assine e Controle Seus Documentos com Facilidade e Segurança',
 };
 
 export default function RootLayout({

@@ -13,6 +13,14 @@ const links = [
     name: 'Documentos',
     href: '/dashboard/document',
   },
+  {
+    name: 'Caixas',
+    href: '/dashboard/containers',
+  },
+  {
+    name: 'Assinaturas',
+    href: '/dashboard/signature',
+  },
 ];
 export function DashboardNavigation() {
   const pathname = usePathname();

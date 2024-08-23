@@ -1,9 +1,9 @@
 import { ReactNode } from 'react';
-import { DashboardNavigation } from '../components/dashboard/DashboardNavigation';
+import { DashboardNavigation } from '../_components/dashboard/DashboardNavigation';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { MenuIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { UserDropdown } from '../components/landingPage/UserDropdown';
+import { UserDropdown } from '../_components/landingPage/UserDropdown';
 import { currentUser } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 
