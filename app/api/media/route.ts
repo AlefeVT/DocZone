@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
       data: {
         userId: user.id,
         key: key,
-        fileName: fileName,  // Usando o nome customizado do arquivo
+        fileName: fileName, // Usando o nome customizado do arquivo
         fileType: fileType,
       },
     });

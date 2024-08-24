@@ -9,7 +9,7 @@ import { currentUser } from '@/lib/auth';
 import { generateVerificationToken } from '@/lib/token';
 import { sendVerificationEmail } from '@/lib/mail';
 import { PrismaClient } from '@prisma/client';
-import { comparePassword, hashPassword } from '@/utils/hash';
+import { comparePassword, hashPassword } from '@/lib/utils';
 
 const db = new PrismaClient();
 

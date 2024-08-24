@@ -71,8 +71,8 @@ export const RegisterSchema = z.object({
 });
 
 export const fileUploadSchema = z.object({
-  customFileName: z.string().min(1, "O nome do documento é obrigatório"),
+  customFileName: z.string().min(1, 'O nome do documento é obrigatório'),
   selectedFile: z.any().refine((file) => file !== null, {
-    message: "Um documento válido deve ser selecionado",
+    message: 'Um documento válido deve ser selecionado',
   }),
 });
