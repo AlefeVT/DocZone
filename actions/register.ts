@@ -6,7 +6,7 @@ import { getUserByEmail } from '@/data/user';
 import { generateVerificationToken } from '@/lib/token';
 import { sendVerificationEmail } from '@/lib/mail';
 import { PrismaClient } from '@prisma/client';
-import { hashPassword } from '@/utils/hash';
+import { hashPassword } from '@/lib/utils';
 
 const db = new PrismaClient();
 

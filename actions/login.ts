@@ -12,7 +12,7 @@ import { DEFAULT_LOGIN_REDIRECT } from '@/routes';
 import { generateVerificationToken, generateTwoFactorToken } from '@/lib/token';
 import { getTwoFactorConfirmationByUserId } from '@/data/two-factor-confirmation';
 import { PrismaClient } from '@prisma/client';
-import { comparePassword } from '@/utils/hash';
+import { comparePassword } from '@/lib/utils';
 
 const db = new PrismaClient();
 

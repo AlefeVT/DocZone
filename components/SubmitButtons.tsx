@@ -14,7 +14,7 @@ interface buttonProps {
     | 'link'
     | null
     | undefined;
-  isLoading?: boolean; 
+  isLoading?: boolean;
 }
 
 export function SubmitButton({ text, variant, isLoading }: buttonProps) {
@@ -34,19 +34,18 @@ export function SubmitButton({ text, variant, isLoading }: buttonProps) {
   );
 }
 
-export function DeleteItem({isLoading}: buttonProps) {
-  
-    return (
-      <>
-        {isLoading ? (
-          <Button disabled variant={'destructive'} >
-            Removendo...
-          </Button>
-        ) : (
-          <Button type="submit" variant={'destructive'}>
-            Remover
-          </Button>
-        )}
-      </>
-    );
-  }
+export function DeleteItem({ isLoading }: buttonProps) {
+  return (
+    <>
+      {isLoading ? (
+        <Button disabled variant={'destructive'}>
+          Removendo...
+        </Button>
+      ) : (
+        <Button type="submit" variant={'destructive'}>
+          Remover
+        </Button>
+      )}
+    </>
+  );
+}

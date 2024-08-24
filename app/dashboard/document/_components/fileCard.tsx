@@ -1,6 +1,13 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/components/ui/card';
 import Image from 'next/image';
-import { FileTextIcon, FileIcon, FileSpreadsheetIcon } from 'lucide-react'; 
+import { FileTextIcon, FileIcon, FileSpreadsheetIcon } from 'lucide-react';
 
 interface FileData {
   id: string;

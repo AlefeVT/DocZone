@@ -1,12 +1,12 @@
-import { DocumentEditForm } from "./_components/documentEditForm";
-import getDocumentEdit from "./actions";
+import { DocumentEditForm } from './_components/documentEditForm';
+import getDocumentEdit from './actions';
 
 export default async function DocumentEditRoute({
-    params,
+  params,
 }: {
-    params: { id: string };
+  params: { id: string };
 }) {
-    const data = await getDocumentEdit(params.id);
+  const data = await getDocumentEdit(params.id);
 
-    return <DocumentEditForm data={data} />;
+  return <DocumentEditForm data={data} />;
 }
