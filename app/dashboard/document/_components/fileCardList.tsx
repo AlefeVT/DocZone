@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState } from 'react';
 import FileCard from './fileCard';
 import { Button } from '@/components/ui/button';
@@ -9,7 +7,6 @@ interface FileData {
   fileName: string;
   fileType: string;
   createdAt: string;
-  url: string;
 }
 
 interface FileCardListProps {
@@ -41,7 +38,13 @@ export default function FileCardList({ files }: FileCardListProps) {
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {currentFiles.map((file) => (
-          <FileCard key={file.id} file={file} />
+          <FileCard
+            key={file.id}
+            file={{
+              ...file,
+              url: `/api/file-stream?fileId=${file.id}`, // URL do endpoint de streaming
+            }}
+          />
         ))}
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">

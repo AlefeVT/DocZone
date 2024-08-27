@@ -7,7 +7,10 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import Image from 'next/image';
-import { FileTextIcon, FileIcon, FileSpreadsheetIcon } from 'lucide-react';
+import { FileTextIcon, FileSpreadsheetIcon, EyeIcon, FileDown, Download } from 'lucide-react';
+import { useState } from 'react';
+import PdfViewerModal from './PdfViewerModal';
+import { Button } from '@/components/ui/button';
 
 interface FileData {
   id: string;
@@ -22,6 +25,8 @@ interface FileCardProps {
 }
 
 export default function FileCard({ file }: FileCardProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const renderFilePreview = () => {
     if (file.fileType.startsWith('image/')) {
       return (
@@ -48,29 +53,52 @@ export default function FileCard({ file }: FileCardProps) {
   };
 
   return (
-    <Card key={file.id} className="w-[350px]">
-      <CardHeader>
-        <CardTitle>{file.fileName}</CardTitle>
-        <CardDescription>Tipo: {file.fileType}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm mb-2">
-          Criado em: {new Date(file.createdAt).toLocaleString()}
-        </p>
-        <div className="flex justify-center items-center h-48 mb-2">
-          {renderFilePreview()}
-        </div>
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        <a
-          href={file.url}
-          className="text-blue-500 hover:underline"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Download
-        </a>
-      </CardFooter>
-    </Card>
+    <>
+      <Card key={file.id} className="w-[350px]">
+        <CardHeader>
+          <CardTitle>{file.fileName}</CardTitle>
+          <CardDescription>Tipo: {file.fileType}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm mb-2">
+            Criado em: {new Date(file.createdAt).toLocaleString()}
+          </p>
+          <div className="flex justify-center items-center h-48 mb-2">
+            {renderFilePreview()}
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <Button asChild variant="outline">
+            <a
+              href={file.url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Download className="h-4 w-4 mr-1" />
+              Download
+            </a>
+          </Button>
+          {file.fileType === 'application/pdf' && (
+            <Button
+              onClick={() => setIsModalOpen(true)}
+              variant="outline"
+              className="flex items-center"
+            >
+              <EyeIcon className="h-5 w-5 mr-1" />
+              Visualizar
+            </Button>
+          )}
+        </CardFooter>
+      </Card>
+
+      {file.fileType === 'application/pdf' && (
+        <PdfViewerModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          fileName={file.fileName}
+          fileUrl={file.url}
+        />
+      )}
+    </>
   );
 }

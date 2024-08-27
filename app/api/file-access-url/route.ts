@@ -41,8 +41,10 @@ export async function GET(req: NextRequest) {
         const command = new GetObjectCommand({
           Bucket: process.env.BUCKET_S3!,
           Key: file.key,
+          ResponseContentDisposition: 'inline', // Configuração para exibir o arquivo no navegador
         });
-        const url = await getSignedUrl(s3Client, command, { expiresIn: 900 }); // 15 minutos
+
+        const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 }); // 1 hora
 
         return {
           id: file.id,
