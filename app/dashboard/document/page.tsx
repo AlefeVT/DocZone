@@ -38,19 +38,6 @@ export default function DocumentListRoute() {
     fetchFileData();
   }, []);
 
-  const handleEdit = (file: FileData) => {
-    console.log(file);
-  };
-
-  const handleDelete = async (fileId: string) => {
-    try {
-      await axios.delete(`/api/remove-media?fileId=${fileId}`);
-      setFiles((prevFiles) => prevFiles.filter((file) => file.id !== fileId));
-    } catch (error) {
-      console.error('Error deleting file:', error);
-    }
-  };
-
   const filteredFiles = files.filter((file) =>
     file.fileName.toLowerCase().includes(searchTerm.toLowerCase())
   );
