@@ -1,13 +1,11 @@
 import Link from 'next/link';
-import { currentRole, currentUser } from '@/lib/auth';
+import { currentUser } from '@/lib/auth';
 import { UserDropdown } from './UserDropdown';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo/logo';
 
 export async function Navbar() {
   const user = await currentUser();
-
-  const role = await currentRole();
 
   return (
     <nav className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">

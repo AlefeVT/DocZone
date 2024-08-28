@@ -7,67 +7,92 @@ import { NextRequest, NextResponse } from 'next/server';
 import { s3Client } from '../s3client-config';
 import { PrismaClient } from '@prisma/client';
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const fileType = searchParams.get('fileType');
-  const fileName = searchParams.get('fileName');
+class FileService {
+  static prisma = new PrismaClient();
 
-  const user = await currentUser();
-
-  if (!fileType || typeof fileType !== 'string') {
-    return NextResponse.json(
-      { error: 'fileType is required and must be a string' },
-      { status: 400 }
-    );
-  }
-
-  if (!fileName || typeof fileName !== 'string') {
-    return NextResponse.json(
-      { error: 'fileName is required and must be a string' },
-      { status: 400 }
-    );
-  }
-
-  if (!user || !user.id) {
-    redirect('/auth/login');
-  }
-
-  const extension = fileType.split('/')[1];
-  const key = `${user.id}/${randomUUID()}.${extension}`;
-
-  const s3Params = {
-    Bucket: process.env.BUCKET_S3!,
-    Key: key,
-    ContentType: fileType,
-  };
-
-  try {
-    const command = new PutObjectCommand(s3Params);
-    const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 60 });
-
-    const prisma = new PrismaClient();
-
-    const file = await prisma.file.create({
+  static async createFileRecord(
+    userId: string,
+    key: string,
+    fileName: string,
+    fileType: string
+  ) {
+    return await this.prisma.file.create({
       data: {
-        userId: user.id,
-        key: key,
-        fileName: fileName, // Usando o nome customizado do arquivo
-        fileType: fileType,
+        userId,
+        key,
+        fileName,
+        fileType,
       },
     });
-
-    return NextResponse.json({
-      uploadUrl,
-      key: key,
-    });
-  } catch (error) {
-    console.error(
-      'Error generating signed URL or saving file metadata:',
-      error
-    );
-    return NextResponse.json(
-      { error: 'Failed to generate signed URL or save file metadata' },
-      { status: 500 }
-    );
   }
+
+  static async generateSignedUrl(key: string, fileType: string) {
+    const s3Params = {
+      Bucket: process.env.BUCKET_S3!,
+      Key: key,
+      ContentType: fileType,
+    };
+
+    const command = new PutObjectCommand(s3Params);
+    return await getSignedUrl(s3Client, command, { expiresIn: 60 });
+  }
+}
+
+class FileController {
+  static async handleRequest(req: NextRequest) {
+    const { fileType, fileName } = this.getQueryParams(req);
+    const user = await currentUser();
+
+    if (!fileType || !fileName) {
+      return this.createValidationErrorResponse(
+        'fileType and fileName are required and must be strings'
+      );
+    }
+
+    if (!user || !user.id) {
+      return redirect('/auth/login');
+    }
+
+    const key = this.generateFileKey(user.id, fileType);
+
+    try {
+      const uploadUrl = await FileService.generateSignedUrl(key, fileType);
+      await FileService.createFileRecord(user.id, key, fileName, fileType);
+
+      return this.createJsonResponse({ uploadUrl, key });
+    } catch (error) {
+      console.error(
+        'Error generating signed URL or saving file metadata:',
+        error
+      );
+      return this.createJsonResponse(
+        { error: 'Failed to generate signed URL or save file metadata' },
+        500
+      );
+    }
+  }
+
+  static getQueryParams(req: NextRequest) {
+    const { searchParams } = new URL(req.url);
+    const fileType = searchParams.get('fileType');
+    const fileName = searchParams.get('fileName');
+    return { fileType, fileName };
+  }
+
+  static createValidationErrorResponse(message: string) {
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+
+  static createJsonResponse(data: any, status: number = 200) {
+    return NextResponse.json(data, { status });
+  }
+
+  static generateFileKey(userId: string, fileType: string) {
+    const extension = fileType.split('/')[1];
+    return `${userId}/${randomUUID()}.${extension}`;
+  }
+}
+
+export async function GET(req: NextRequest) {
+  return await FileController.handleRequest(req);
 }

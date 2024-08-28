@@ -1,67 +1,83 @@
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { s3Client } from '../s3client-config';
 import { currentUser } from '@/lib/auth';
 import { PrismaClient } from '@prisma/client';
 import { redirect } from 'next/navigation';
 
-export async function GET(req: NextRequest) {
-  const user = await currentUser();
+class FileService {
+  static prisma = new PrismaClient();
 
-  if (!user || !user.id) {
-    redirect('/auth/login');
+  static async getFilesForUser(userId: string) {
+    return await this.prisma.file.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        id: true,
+        key: true,
+        fileName: true,
+        fileType: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
   }
 
-  const prisma = new PrismaClient();
+  static async generateSignedUrl(fileKey: string) {
+    const command = new GetObjectCommand({
+      Bucket: process.env.BUCKET_S3!,
+      Key: fileKey,
+      ResponseContentDisposition: 'inline',
+    });
 
-  const files = await prisma.file.findMany({
-    where: {
-      userId: user.id,
-    },
-    select: {
-      id: true,
-      key: true,
-      fileName: true,
-      fileType: true,
-      createdAt: true,
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
-  });
-
-  if (!files || files.length === 0) {
-    return NextResponse.json({ files: [] }, { status: 200 });
+    return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
   }
+}
 
-  try {
-    const filesWithUrls = await Promise.all(
-      files.map(async (file) => {
-        const command = new GetObjectCommand({
-          Bucket: process.env.BUCKET_S3!,
-          Key: file.key,
-          ResponseContentDisposition: 'inline', // Configuração para exibir o arquivo no navegador
-        });
+class FileController {
+  static async handleRequest() {
+    const user = await currentUser();
 
-        const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 }); // 1 hora
+    if (!user || !user.id) {
+      return redirect('/auth/login');
+    }
 
-        return {
+    try {
+      const files = await FileService.getFilesForUser(user.id);
+
+      if (!files || files.length === 0) {
+        return this.createJsonResponse({ files: [] }, 200);
+      }
+
+      const filesWithUrls = await Promise.all(
+        files.map(async (file) => ({
           id: file.id,
           fileName: file.fileName,
           fileType: file.fileType,
           createdAt: file.createdAt,
-          url,
-        };
-      })
-    );
+          url: await FileService.generateSignedUrl(file.key),
+        }))
+      );
 
-    return NextResponse.json({ files: filesWithUrls });
-  } catch (error) {
-    console.error('Error generating access URLs:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate access URLs' },
-      { status: 500 }
-    );
+      return this.createJsonResponse({ files: filesWithUrls });
+    } catch (error) {
+      console.error('Error generating access URLs:', error);
+      return this.createJsonResponse(
+        { error: 'Failed to generate access URLs' },
+        500
+      );
+    }
   }
+
+  static createJsonResponse(data: any, status: number = 200) {
+    return NextResponse.json(data, { status });
+  }
+}
+
+export async function GET() {
+  return await FileController.handleRequest();
 }

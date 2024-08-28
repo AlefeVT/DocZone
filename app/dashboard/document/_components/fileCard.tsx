@@ -4,13 +4,30 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-  CardFooter,
 } from '@/components/ui/card';
 import Image from 'next/image';
-import { FileTextIcon, FileSpreadsheetIcon, EyeIcon, FileDown, Download } from 'lucide-react';
+import {
+  FileTextIcon,
+  FileSpreadsheetIcon,
+  EyeIcon,
+  Download,
+  MoreHorizontal,
+  Edit2, // Ícone de editar
+  Trash2, // Ícone de excluir
+} from 'lucide-react';
 import { useState } from 'react';
 import PdfViewerModal from './PdfViewerModal';
+import ImageViewerModal from './ImageViewerModal';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import Link from 'next/link';
 
 interface FileData {
   id: string;
@@ -22,9 +39,10 @@ interface FileData {
 
 interface FileCardProps {
   file: FileData;
+  url_signed_file: string;
 }
 
-export default function FileCard({ file }: FileCardProps) {
+export default function FileCard({ file, url_signed_file }: FileCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const renderFilePreview = () => {
@@ -54,9 +72,61 @@ export default function FileCard({ file }: FileCardProps) {
 
   return (
     <>
-      <Card key={file.id} className="w-[350px]">
+      <Card key={file.id} className="w-[350px] relative">
         <CardHeader>
-          <CardTitle>{file.fileName}</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>{file.fileName}</CardTitle>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Link
+                    href={`/dashboard/document/${file.id}`}
+                    className="flex items-center"
+                  >
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    Editar
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem>
+                  <Link
+                    href={`/dashboard/document/${file.id}/delete`}
+                    className="flex items-center"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem>
+                  <a
+                    href={url_signed_file}
+                    rel="noopener noreferrer"
+                    className="flex items-center"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Baixar
+                  </a>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex items-center cursor-pointer"
+                >
+                  <EyeIcon className="h-5 w-5 mr-2" />
+                  Visualizar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
           <CardDescription>Tipo: {file.fileType}</CardDescription>
         </CardHeader>
         <CardContent>
@@ -67,28 +137,6 @@ export default function FileCard({ file }: FileCardProps) {
             {renderFilePreview()}
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button asChild variant="outline">
-            <a
-              href={file.url}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Download className="h-4 w-4 mr-1" />
-              Download
-            </a>
-          </Button>
-          {file.fileType === 'application/pdf' && (
-            <Button
-              onClick={() => setIsModalOpen(true)}
-              variant="outline"
-              className="flex items-center"
-            >
-              <EyeIcon className="h-5 w-5 mr-1" />
-              Visualizar
-            </Button>
-          )}
-        </CardFooter>
       </Card>
 
       {file.fileType === 'application/pdf' && (
@@ -97,6 +145,15 @@ export default function FileCard({ file }: FileCardProps) {
           onClose={() => setIsModalOpen(false)}
           fileName={file.fileName}
           fileUrl={file.url}
+        />
+      )}
+
+      {file.fileType.startsWith('image/') && (
+        <ImageViewerModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          fileName={file.fileName}
+          fileUrl={url_signed_file}
         />
       )}
     </>

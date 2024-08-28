@@ -1,5 +1,7 @@
 'use client';
 
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { ChangeEvent } from 'react';
 
 interface FileUploadDropzoneProps {
@@ -11,7 +13,7 @@ export default function FileUploadDropzone({
 }: FileUploadDropzoneProps) {
   return (
     <div className="flex items-center justify-center w-full">
-      <label
+      <Label
         htmlFor="file-upload"
         className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
       >
@@ -39,14 +41,14 @@ export default function FileUploadDropzone({
             PDF, XLS, DOC, TXT, PNG, JPG (MAX. 800x400px)
           </p>
         </div>
-        <input
+        <Input
           id="file-upload"
           type="file"
           name="file"
           className="hidden"
           onChange={onFileChange}
         />
-      </label>
+      </Label>
     </div>
   );
 }
