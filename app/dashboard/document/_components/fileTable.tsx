@@ -18,7 +18,18 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
+import PdfViewerModal from './PdfViewerModal';
+import ImageViewerModal from './ImageViewerModal';
 
 interface FileData {
   id: string;
@@ -28,7 +39,7 @@ interface FileData {
   url: string;
 }
 
-interface DataTableDemoProps {
+interface FileTableProps {
   files: FileData[];
 }
 
@@ -59,32 +70,67 @@ export const columns: ColumnDef<FileData>[] = [
     cell: ({ row, table }) => {
       const file = row.original;
       const meta = table.options.meta || {}; // Acessa meta com um fallback para um objeto vazio
-      const { onEdit, onDelete } = meta as {
-        onEdit: (file: FileData) => void;
-        onDelete: (fileId: string) => void;
+      const { onView } = meta as {
+        onView: (file: FileData) => void;
       };
 
       return (
-        <div className="flex space-x-2">
-          <Button variant="outline" size="sm">
-            <Link href={`/dashboard/document/${file.id}`}>Editar</Link>
-          </Button>
-          <Button variant="outline" size="sm">
-            <Link href={`/dashboard/document/${file.id}/delete`}>Excluir</Link>
-          </Button>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Ações</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <Link href={`/dashboard/document/${file.id}`}>Editar</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Link href={`/dashboard/document/${file.id}/delete`}>
+                Excluir
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onView(file)}>
+              Visualizar
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <a href={file.url} download={file.fileName}>
+                Baixar
+              </a>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       );
     },
   },
 ];
 
-export function DataTableDemo({ files }: DataTableDemoProps) {
+export function FileTable({ files }: FileTableProps) {
+  const [selectedFile, setSelectedFile] = React.useState<FileData | null>(null);
+  const [fileUrl, setFileUrl] = React.useState<string | null>(null);
+
+  const handleViewFile = (file: FileData) => {
+    if (file.fileType === 'application/pdf') {
+      const pdfUrl = `/api/file-stream?fileId=${file.id}`;
+      setFileUrl(pdfUrl);
+    } else {
+      setFileUrl(file.url);
+    }
+    setSelectedFile(file);
+  };
+
   const table = useReactTable({
     data: files,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    meta: {
+      onView: handleViewFile,
+    },
     initialState: {
       pagination: {
         pageSize: 10,
@@ -157,6 +203,24 @@ export function DataTableDemo({ files }: DataTableDemoProps) {
           Próximo
         </Button>
       </div>
+
+      {selectedFile && selectedFile.fileType === 'application/pdf' && (
+        <PdfViewerModal
+          isOpen={!!selectedFile}
+          onClose={() => setSelectedFile(null)}
+          fileName={selectedFile.fileName}
+          fileUrl={fileUrl!} // Exclamação para garantir que fileUrl nunca será nulo
+        />
+      )}
+
+      {selectedFile && selectedFile.fileType.startsWith('image/') && (
+        <ImageViewerModal
+          isOpen={!!selectedFile}
+          onClose={() => setSelectedFile(null)}
+          fileName={selectedFile.fileName}
+          fileUrl={fileUrl!} // Exclamação para garantir que fileUrl nunca será nulo
+        />
+      )}
     </div>
   );
 }

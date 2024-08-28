@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { FileData } from '@/interfaces/FileData';
 import axios from 'axios';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -17,7 +16,6 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 export default function DeleteRoute({ params }: { params: { id: string } }) {
-  const [files, setFiles] = useState<FileData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -25,7 +23,6 @@ export default function DeleteRoute({ params }: { params: { id: string } }) {
     setIsLoading(true);
     try {
       await axios.delete(`/api/remove-media?fileId=${fileId}`);
-      setFiles((prevFiles) => prevFiles.filter((file) => file.id !== fileId));
       toast.success('Documento excluído com sucesso!');
       router.push('/dashboard/document');
     } catch (error) {

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import FileCard from './fileCard';
 import { Button } from '@/components/ui/button';
@@ -5,6 +7,7 @@ import { Button } from '@/components/ui/button';
 interface FileData {
   id: string;
   fileName: string;
+  url: string;
   fileType: string;
   createdAt: string;
 }
@@ -39,6 +42,7 @@ export default function FileCardList({ files }: FileCardListProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {currentFiles.map((file) => (
           <FileCard
+            url_signed_file={file.url}
             key={file.id}
             file={{
               ...file,
