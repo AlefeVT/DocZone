@@ -96,9 +96,9 @@ model Container {
 
 model File {
   id          String      @id @default(cuid())
-  containerId String?
+  containerId String
   userId      String
-  key         String
+  key         String      @unique
   fileName    String
   fileSize    String
   fileType    String
@@ -106,14 +106,14 @@ model File {
   createdAt   DateTime    @default(now())
 
   container Container? @relation(fields: [containerId], references: [id], onDelete: Cascade)
-  user      User      @relation(fields: [userId], references: [id])
+  user      User       @relation(fields: [userId], references: [id])
 }
 
 model Signature {
-  id             String        @id @default(cuid())
+  id             String   @id @default(cuid())
   fileId         String
   userId         String
-  signedAt       DateTime      @default(now())
+  signedAt       DateTime @default(now())
   signatureType  String
   signatureValue String
 

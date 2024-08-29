@@ -15,7 +15,7 @@ const links = [
   },
   {
     name: 'Caixas',
-    href: '/dashboard/containers',
+    href: '/dashboard/container',
   },
   {
     name: 'Assinaturas',

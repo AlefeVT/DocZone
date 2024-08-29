@@ -34,10 +34,31 @@ class FileService {
       },
     });
   }
+
+  static async updateFileMetadata(fileKey: string, newFileName: string, newFileType: string, newFileSize: string) {
+    return await this.prisma.file.update({
+      where: { key: fileKey }, 
+      data: {
+        fileName: newFileName,
+        fileType: newFileType,
+        fileSize: newFileSize,
+      },
+    });
+  }
 }
 
 class FileController {
   static async handleRequest(req: NextRequest) {
+    if (req.method === 'POST') {
+      return this.handlePostRequest(req);
+    } else if (req.method === 'PUT') {
+      return this.handlePutRequest(req);
+    } else {
+      return FileController.createJsonResponse({ error: 'Método não permitido' }, 405);
+    }
+  }
+
+  static async handlePostRequest(req: NextRequest) {
     const formData = await req.formData();
     const files = formData.getAll('files') as Blob[];
     const fileNames = formData.getAll('fileNames') as string[];
@@ -47,7 +68,7 @@ class FileController {
     const user = await currentUser();
 
     if (!files.length || !user || !user.id) {
-      return this.createJsonResponse({ error: 'Usuário não autenticado ou nenhum arquivo enviado' }, 400);
+      return FileController.createJsonResponse({ error: 'Usuário não autenticado ou nenhum arquivo enviado' }, 400);
     }
 
     try {
@@ -62,10 +83,8 @@ class FileController {
         const newKey = FileService.generateNewKey(user.id, newFileType);
         const fileContentBuffer = Buffer.from(await newFileContent.arrayBuffer());
 
-        // Upload para o S3
         await FileService.uploadFileToS3(newKey, fileContentBuffer, newFileType);
 
-        // Salva os metadados no banco de dados
         const savedFile = await FileService.saveFileMetadata(
           user.id,
           newKey,
@@ -77,13 +96,54 @@ class FileController {
         uploadedFiles.push(savedFile);
       }
 
-      return this.createJsonResponse({
+      return FileController.createJsonResponse({
         message: 'Arquivos carregados e metadados salvos com sucesso',
         uploadedFiles,
       });
     } catch (error) {
       console.error('Erro ao carregar arquivos ou salvar metadados:', error);
-      return this.createJsonResponse({ error: 'Falha ao carregar arquivos ou salvar metadados' }, 500);
+      return FileController.createJsonResponse({ error: 'Falha ao carregar arquivos ou salvar metadados' }, 500);
+    } finally {
+      await FileService.prisma.$disconnect();
+    }
+  }
+
+  static async handlePutRequest(req: NextRequest) {
+    const formData = await req.formData();
+    const fileKey = formData.get('fileKey') as string;
+    const newFileName = formData.get('newFileName') as string;
+    const newFileType = formData.get('newFileType') as string;
+    const newFileSize = formData.get('newFileSize') as string;
+    const file = formData.get('file') as Blob;
+
+    const user = await currentUser();
+
+    if (!fileKey || !newFileName || !file || !user || !user.id) {
+      return FileController.createJsonResponse({ error: 'Dados insuficientes ou usuário não autenticado' }, 400);
+    }
+
+    const existingFile = await FileService.prisma.file.findUnique({
+      where: { key: fileKey },
+    });
+
+    if (!existingFile) {
+      return FileController.createJsonResponse({ error: 'Arquivo não encontrado' }, 404);
+    }
+
+    try {
+      const fileContentBuffer = Buffer.from(await file.arrayBuffer());
+
+      await FileService.uploadFileToS3(fileKey, fileContentBuffer, newFileType);
+
+      const updatedFile = await FileService.updateFileMetadata(fileKey, newFileName, newFileType, newFileSize);
+
+      return FileController.createJsonResponse({
+        message: 'Arquivo atualizado com sucesso',
+        updatedFile,
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar o arquivo ou metadados:', error);
+      return FileController.createJsonResponse({ error: 'Falha ao atualizar o arquivo ou metadados' }, 500);
     } finally {
       await FileService.prisma.$disconnect();
     }
@@ -94,6 +154,10 @@ class FileController {
   }
 }
 
-export async function POST(req: NextRequest) { // Altere para POST para o upload de arquivos
+export async function POST(req: NextRequest) {
+  return await FileController.handleRequest(req);
+}
+
+export async function PUT(req: NextRequest) {
   return await FileController.handleRequest(req);
 }

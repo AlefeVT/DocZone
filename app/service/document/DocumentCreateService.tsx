@@ -5,20 +5,18 @@ import { fileUploadSchema } from '@/schemas';
 export class DocumentCreateService {
   static validateFileUpload(data: {
     customFileName: string;
-    selectedFiles: File[]; // Alterado para lidar com múltiplos arquivos
+    selectedFiles: File[]; 
   }) {
     const errors: {
       customFileName?: string;
       selectedFile?: string;
     } = {};
 
-    // Valida o nome do arquivo customizado
     const fileNameValidation = fileUploadSchema.shape.customFileName.safeParse(data.customFileName);
     if (!fileNameValidation.success) {
       errors.customFileName = fileNameValidation.error.format()._errors[0];
     }
 
-    // Valida cada arquivo individualmente
     if (data.selectedFiles.length === 0) {
       errors.selectedFile = 'Pelo menos um arquivo deve ser selecionado';
     } else {
@@ -42,7 +40,8 @@ export class DocumentCreateService {
 
   static async uploadToS3(
     file: File,
-    customFileName: string | null
+    customFileName: string | null,
+    selectedContainer: string 
   ): Promise<string | null> {
     try {
       if (!file) {
@@ -57,7 +56,7 @@ export class DocumentCreateService {
       const fileSize = encodeURIComponent(file.size);
 
       const { data } = await axios.get(
-        `/api/media?fileType=${fileType}&fileName=${fileName}&fileSize=${fileSize}`
+        `/api/media?fileType=${fileType}&fileName=${fileName}&fileSize=${fileSize}&containerId=${selectedContainer}`
       );
       const { uploadUrl, key } = data;
 

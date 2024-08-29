@@ -12,6 +12,7 @@ class FileService {
 
   static async createFileRecord(
     userId: string,
+    containerId: string,
     key: string,
     fileName: string,
     fileSize: string,
@@ -20,6 +21,7 @@ class FileService {
     return await this.prisma.file.create({
       data: {
         userId,
+        containerId, 
         key,
         fileName,
         fileSize,
@@ -42,12 +44,12 @@ class FileService {
 
 class FileController {
   static async handleRequest(req: NextRequest) {
-    const { fileType, fileName, fileSize } = this.getQueryParams(req);
+    const { fileType, fileName, fileSize, containerId } = this.getQueryParams(req);
     const user = await currentUser();
 
-    if (!fileType || !fileName || !fileSize) {
+    if (!fileType || !fileName || !fileSize || !containerId) {
       return this.createValidationErrorResponse(
-        'fileType, fileName, and fileSize are required and must be strings'
+        'fileType, fileName, fileSize, and containerId are required and must be strings'
       );
     }
 
@@ -55,12 +57,13 @@ class FileController {
       return redirect('/auth/login');
     }
 
-    const key = this.generateFileKey(user.id, fileType);
+    const key = this.generateFileKey(user.id, containerId, fileName, fileType);
 
     try {
       const uploadUrl = await FileService.generateSignedUrl(key, fileType);
       await FileService.createFileRecord(
         user.id,
+        containerId, 
         key,
         fileName,
         fileSize,
@@ -85,7 +88,8 @@ class FileController {
     const fileType = searchParams.get('fileType');
     const fileName = searchParams.get('fileName');
     const fileSize = searchParams.get('fileSize');
-    return { fileType, fileName, fileSize };
+    const containerId = searchParams.get('containerId'); 
+    return { fileType, fileName, fileSize, containerId };
   }
 
   static createValidationErrorResponse(message: string) {
@@ -96,9 +100,9 @@ class FileController {
     return NextResponse.json(data, { status });
   }
 
-  static generateFileKey(userId: string, fileType: string) {
+  static generateFileKey(userId: string, containerId: string, fileName: string, fileType: string) {
     const extension = fileType.split('/')[1];
-    return `${userId}/${randomUUID()}.${extension}`;
+    return `${userId}/${containerId}/${randomUUID()}-${fileName}.${extension}`;
   }
 }
 
