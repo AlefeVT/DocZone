@@ -25,6 +25,7 @@ export default async function getDocumentEdit(id: string) {
       userId: document.userId,
       key: document.key,
       fileName: document.fileName,
+      fileSize: document.fileSize,
       fileType: document.fileType,
       createdAt: document.createdAt,
       container: document.container,

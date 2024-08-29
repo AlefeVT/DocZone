@@ -5,6 +5,7 @@ interface DocumentData {
     userId: string;
     key: string;
     fileName: string;
+    fileSize: string;
     fileType: string;
     createdAt: Date;
     container?: {

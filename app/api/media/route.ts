@@ -14,6 +14,7 @@ class FileService {
     userId: string,
     key: string,
     fileName: string,
+    fileSize: string,
     fileType: string
   ) {
     return await this.prisma.file.create({
@@ -21,6 +22,7 @@ class FileService {
         userId,
         key,
         fileName,
+        fileSize,
         fileType,
       },
     });
@@ -40,12 +42,12 @@ class FileService {
 
 class FileController {
   static async handleRequest(req: NextRequest) {
-    const { fileType, fileName } = this.getQueryParams(req);
+    const { fileType, fileName, fileSize } = this.getQueryParams(req);
     const user = await currentUser();
 
-    if (!fileType || !fileName) {
+    if (!fileType || !fileName || !fileSize) {
       return this.createValidationErrorResponse(
-        'fileType and fileName are required and must be strings'
+        'fileType, fileName, and fileSize are required and must be strings'
       );
     }
 
@@ -57,7 +59,13 @@ class FileController {
 
     try {
       const uploadUrl = await FileService.generateSignedUrl(key, fileType);
-      await FileService.createFileRecord(user.id, key, fileName, fileType);
+      await FileService.createFileRecord(
+        user.id,
+        key,
+        fileName,
+        fileSize,
+        fileType
+      );
 
       return this.createJsonResponse({ uploadUrl, key });
     } catch (error) {
@@ -76,7 +84,8 @@ class FileController {
     const { searchParams } = new URL(req.url);
     const fileType = searchParams.get('fileType');
     const fileName = searchParams.get('fileName');
-    return { fileType, fileName };
+    const fileSize = searchParams.get('fileSize');
+    return { fileType, fileName, fileSize };
   }
 
   static createValidationErrorResponse(message: string) {

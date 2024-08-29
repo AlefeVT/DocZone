@@ -47,6 +47,7 @@ export default function FileUploadDropzone({
           name="file"
           className="hidden"
           onChange={onFileChange}
+          multiple
         />
       </Label>
     </div>

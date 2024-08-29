@@ -5,9 +5,9 @@ export class DocumentCreateController {
   static async handleSubmit(
     e: FormEvent<HTMLFormElement>,
     customFileName: string,
-    selectedFile: File | null,
+    selectedFiles: File[],  // Agora lidamos com uma lista de arquivos
     setIsLoading: (loading: boolean) => void,
-    onSuccess: (fileUrl: string) => void,
+    onSuccess: (fileUrls: string[]) => void, // O onSuccess agora aceita uma lista de URLs
     onError: (errors: {
       customFileName?: string;
       selectedFile?: string;
@@ -18,7 +18,7 @@ export class DocumentCreateController {
 
     const validationResult = DocumentCreateService.validateFileUpload({
       customFileName,
-      selectedFile,
+      selectedFiles,  // Passa a lista de arquivos para a validação
     });
 
     if (!validationResult.success) {
@@ -28,13 +28,18 @@ export class DocumentCreateController {
     }
 
     try {
-      const key = await DocumentCreateService.uploadToS3(
-        selectedFile,
-        customFileName
-      );
-      if (key) {
-        const newFileUrl = DocumentCreateService.generateFileUrl(key);
-        onSuccess(newFileUrl);
+      const fileUrls: string[] = [];
+
+      for (const file of selectedFiles) {
+        const key = await DocumentCreateService.uploadToS3(file, customFileName);
+        if (key) {
+          const fileUrl = DocumentCreateService.generateFileUrl(key);
+          fileUrls.push(fileUrl);
+        }
+      }
+
+      if (fileUrls.length > 0) {
+        onSuccess(fileUrls); // Passa a lista de URLs ao invés de uma única URL
       }
     } finally {
       setIsLoading(false);
@@ -42,19 +47,24 @@ export class DocumentCreateController {
   }
 
   static handleFileChange(
-    file: File | null,
-    onFileChange: (file: File | null) => void,
+    files: File[],  // Agora lidamos com múltiplos arquivos
+    onFileChange: (files: File[]) => void,
     clearError: () => void
   ) {
-    onFileChange(file);
+    onFileChange(files);
     clearError();
   }
 
   static handleRemoveFile(
-    onFileRemove: () => void,
+    index: number,
+    selectedFiles: File[],  // Passa a lista de arquivos atualmente selecionados
+    onFileChange: (files: File[]) => void,
     setError: (message: string) => void
   ) {
-    onFileRemove();
-    setError('Um documento válido deve ser selecionado');
+    const updatedFiles = selectedFiles.filter((_, i) => i !== index);
+    onFileChange(updatedFiles);
+    if (updatedFiles.length === 0) {
+      setError('Um documento válido deve ser selecionado');
+    }
   }
 }

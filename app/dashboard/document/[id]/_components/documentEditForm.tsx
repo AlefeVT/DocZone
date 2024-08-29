@@ -25,18 +25,32 @@ export function DocumentEditForm({ data }: DocumentData) {
   const router = useRouter();
 
   useEffect(() => {
-    if (data.fileName) {
+    if (data.fileName && data.fileSize) {
       const simulatedFile = new File([data.fileName], data.fileName, {
         type: data.fileType,
+        lastModified: new Date(data.createdAt).getTime(),
       });
+
+      Object.defineProperty(simulatedFile, 'size', {
+        value: parseInt(data.fileSize, 10),
+        writable: false,
+      });
+
       setSelectedFile(simulatedFile);
     }
-  }, [data.fileName, data.fileType]);
+  }, [data.fileName, data.fileSize, data.fileType, data.createdAt]);
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    setSelectedFile(file || null);
-    setErrors((prevErrors) => ({ ...prevErrors, selectedFile: undefined }));
+    if (file) {
+      setSelectedFile(file);
+      setErrors((prevErrors) => ({ ...prevErrors, selectedFile: undefined }));
+    } else {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        selectedFile: 'Selecione um arquivo válido.',
+      }));
+    }
   }
 
   function handleRemoveFile() {
@@ -52,30 +66,36 @@ export function DocumentEditForm({ data }: DocumentData) {
     setIsLoading(true);
 
     try {
+      if (!data.key || !customFileName) {
+        throw new Error('fileKey e newFileName são obrigatórios');
+      }
+
       const formData = new FormData();
       formData.append('fileKey', data.key);
       formData.append('newFileName', customFileName);
 
       if (selectedFile) {
         formData.append('newFileType', selectedFile.type);
+        formData.append('newFileSize', selectedFile.size.toString());
+        formData.append('file', selectedFile); // Certifique-se de adicionar o arquivo ao FormData
+      } else {
+        throw new Error('Nenhum arquivo foi selecionado para upload.');
       }
 
-      const response = await fetch(
-        `/api/update-media?fileKey=${data.key}&newFileName=${customFileName}&newFileType=${selectedFile?.type}`,
-        {
-          method: 'PUT',
-        }
-      );
+      const response = await fetch('/api/update-media', {
+        method: 'PUT',
+        body: formData,
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update file');
+        throw new Error(errorData.error || 'Falha ao atualizar o arquivo');
       }
 
       toast.success('Documento editado com sucesso!');
       router.push('/dashboard/document');
     } catch (error) {
-      console.error('Error updating file:', error);
+      console.error('Erro ao atualizar o arquivo:', error);
       toast.error('Erro ao tentar editar o documento!');
     } finally {
       setIsLoading(false);
@@ -85,7 +105,7 @@ export function DocumentEditForm({ data }: DocumentData) {
   return (
     <div className="flex flex-col items-center p-4">
       <div className="w-full flex items-center mb-10 gap-8">
-        <Button variant={'outline'} size={'icon'} asChild>
+        <Button variant={'outline'} size={'icon'} title="Voltar" asChild>
           <Link href={'/dashboard/document'}>
             <ChevronLeft className="w-4 h-4" />
           </Link>
