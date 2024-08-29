@@ -12,8 +12,11 @@ import {
   EyeIcon,
   Download,
   MoreHorizontal,
-  Edit2, // Ícone de editar
-  Trash2, // Ícone de excluir
+  Edit2,
+  Trash2,
+  FolderSync,
+  FileText,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { useState } from 'react';
 import PdfViewerModal from './PdfViewerModal';
@@ -44,6 +47,7 @@ interface FileCardProps {
 
 export default function FileCard({ file, url_signed_file }: FileCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPdfLoading, setIsPdfLoading] = useState(true);
 
   const renderFilePreview = () => {
     if (file.fileType.startsWith('image/')) {
@@ -57,7 +61,18 @@ export default function FileCard({ file, url_signed_file }: FileCardProps) {
         />
       );
     } else if (file.fileType === 'application/pdf') {
-      return <FileTextIcon className="h-36 w-36 text-gray-500" />;
+      return (
+        <div className="w-full h-48 flex justify-center items-center">
+          {isPdfLoading && <FolderSync className="h-12 w-12 text-gray-500" />}
+          <iframe
+            src={file.url}
+            className={`w-full h-48 ${isPdfLoading ? 'hidden' : ''}`}
+            frameBorder="0"
+            title="PDF Preview"
+            onLoad={() => setIsPdfLoading(false)}
+          />
+        </div>
+      );
     } else if (
       file.fileType.startsWith('application/vnd.ms-excel') ||
       file.fileType.startsWith(
@@ -70,12 +85,23 @@ export default function FileCard({ file, url_signed_file }: FileCardProps) {
     }
   };
 
+  const renderFileIcon = () => {
+    if (file.fileType.startsWith('image/')) {
+      return <ImageIcon className="h-4 w-4 mr-2" />;
+    } else {
+      return <FileText className="h-4 w-4 mr-2" />;
+    }
+  };
+
   return (
     <>
       <Card key={file.id} className="w-[350px] relative">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>{file.fileName}</CardTitle>
+            <CardTitle className="flex items-center">
+              {renderFileIcon()}
+              {file.fileName}
+            </CardTitle>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="h-8 w-8 p-0">
@@ -121,7 +147,7 @@ export default function FileCard({ file, url_signed_file }: FileCardProps) {
                   onClick={() => setIsModalOpen(true)}
                   className="flex items-center cursor-pointer"
                 >
-                  <EyeIcon className="h-5 w-5 mr-2" />
+                  <EyeIcon className="h-4 w-4 mr-2" />
                   Visualizar
                 </DropdownMenuItem>
               </DropdownMenuContent>

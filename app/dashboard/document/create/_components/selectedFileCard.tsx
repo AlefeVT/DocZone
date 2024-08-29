@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { FileTextIcon, X } from 'lucide-react';
 
 interface SelectedFileCardProps {
@@ -28,13 +29,15 @@ export default function SelectedFileCard({
           </p>
         </div>
       </div>
-      <button
+      <Button
         type="button"
         className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
         onClick={onRemove}
+        variant={'ghost'}
+        title='Remover'
       >
         <X className="w-5 h-5" />
-      </button>
+      </Button>
     </div>
   );
 }

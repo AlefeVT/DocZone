@@ -13,7 +13,7 @@ import { DocumentCreateController } from '../../../controller/document/DocumentC
 import { useRouter } from 'next/navigation';
 
 export default function DocumentCreateView() {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [customFileName, setCustomFileName] = useState<string>('');
   const [errors, setErrors] = useState<{
     customFileName?: string;
@@ -23,7 +23,7 @@ export default function DocumentCreateView() {
   const router = useRouter();
 
   const handleSuccess = () => {
-    setSelectedFile(null);
+    setSelectedFiles([]);
     setCustomFileName('');
     setErrors({});
     router.push('/dashboard/document');
@@ -36,10 +36,21 @@ export default function DocumentCreateView() {
     setErrors(errors);
   };
 
+  const handleFileChange = (files: FileList | null) => {
+    if (files) {
+      const fileArray = Array.from(files);
+      setSelectedFiles(fileArray);
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        selectedFile: undefined,
+      }));
+    }
+  };
+
   return (
     <div className="flex flex-col items-center p-4">
       <div className="w-full flex items-center mb-10 gap-8">
-        <Button variant={'outline'} size={'icon'} asChild>
+        <Button variant={'outline'} size={'icon'} title="Voltar" asChild>
           <Link href={'/dashboard/document'}>
             <ChevronLeft className="w-4 h-4" />
           </Link>
@@ -52,7 +63,7 @@ export default function DocumentCreateView() {
           DocumentCreateController.handleSubmit(
             e,
             customFileName,
-            selectedFile,
+            selectedFiles,
             setIsLoading,
             handleSuccess,
             handleError
@@ -86,40 +97,37 @@ export default function DocumentCreateView() {
           )}
         </div>
 
-        {!selectedFile ? (
+        {!selectedFiles.length ? (
           <>
             <FileUploadDropzone
-              onFileChange={(e) =>
-                DocumentCreateController.handleFileChange(
-                  e.target.files?.[0] || null,
-                  setSelectedFile,
-                  () =>
-                    setErrors((prevErrors) => ({
-                      ...prevErrors,
-                      selectedFile: undefined,
-                    }))
-                )
-              }
+              onFileChange={(e) => handleFileChange(e.target.files)}
             />
             {errors.selectedFile && (
               <p className="text-red-500">{errors.selectedFile}</p>
             )}
           </>
         ) : (
-          <SelectedFileCard
-            fileName={selectedFile.name}
-            fileSize={selectedFile.size}
-            onRemove={() =>
-              DocumentCreateController.handleRemoveFile(
-                () => setSelectedFile(null),
-                (message) =>
-                  setErrors((prevErrors) => ({
-                    ...prevErrors,
-                    selectedFile: message,
-                  }))
-              )
-            }
-          />
+          <div className="space-y-2">
+            {selectedFiles.map((file, index) => (
+              <SelectedFileCard
+                key={index}
+                fileName={file.name}
+                fileSize={file.size}
+                onRemove={() =>
+                  DocumentCreateController.handleRemoveFile(
+                    index, // Índice do arquivo a ser removido
+                    selectedFiles, // Arquivos atuais
+                    setSelectedFiles, // Função para atualizar os arquivos
+                    (message) =>
+                      setErrors((prevErrors) => ({
+                        ...prevErrors,
+                        selectedFile: message,
+                      }))
+                  )
+                }
+              />
+            ))}
+          </div>
         )}
 
         <div className="flex justify-end">

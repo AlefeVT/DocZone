@@ -26,7 +26,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal } from 'lucide-react';
+import {
+  Download,
+  Edit2,
+  EyeIcon,
+  MoreHorizontal,
+  Trash2,
+  FileText,
+  Image as ImageIcon,
+} from 'lucide-react';
 import Link from 'next/link';
 import PdfViewerModal from './PdfViewerModal';
 import ImageViewerModal from './ImageViewerModal';
@@ -47,6 +55,21 @@ export const columns: ColumnDef<FileData>[] = [
   {
     accessorKey: 'fileName',
     header: 'Nome do Arquivo',
+    cell: ({ row }) => {
+      const file = row.original;
+      const icon = file.fileType.startsWith('image/') ? (
+        <ImageIcon className="h-4 w-4 mr-2" />
+      ) : (
+        <FileText className="h-4 w-4 mr-2" />
+      );
+
+      return (
+        <div className="flex items-center">
+          {icon}
+          {file.fileName}
+        </div>
+      );
+    },
   },
   {
     accessorKey: 'fileType',
@@ -69,7 +92,7 @@ export const columns: ColumnDef<FileData>[] = [
     header: 'Ações',
     cell: ({ row, table }) => {
       const file = row.original;
-      const meta = table.options.meta || {}; // Acessa meta com um fallback para um objeto vazio
+      const meta = table.options.meta || {};
       const { onView } = meta as {
         onView: (file: FileData) => void;
       };
@@ -86,18 +109,37 @@ export const columns: ColumnDef<FileData>[] = [
             <DropdownMenuLabel>Ações</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <Link href={`/dashboard/document/${file.id}`}>Editar</Link>
+              <Link
+                href={`/dashboard/document/${file.id}`}
+                className="flex items-center w-full"
+              >
+                <Edit2 className="h-4 w-4 mr-2" />
+                Editar
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
-              <Link href={`/dashboard/document/${file.id}/delete`}>
+              <Link
+                href={`/dashboard/document/${file.id}/delete`}
+                className="flex items-center w-full"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
                 Excluir
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onView(file)}>
+            <DropdownMenuItem
+              onClick={() => onView(file)}
+              className="flex items-center cursor-pointer"
+            >
+              <EyeIcon className="h-4 w-4 mr-2" />
               Visualizar
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <a href={file.url} download={file.fileName}>
+              <a
+                href={file.url}
+                download={file.fileName}
+                className="flex items-center cursor-pointer"
+              >
+                <Download className="h-4 w-4 mr-2" />
                 Baixar
               </a>
             </DropdownMenuItem>
@@ -209,7 +251,7 @@ export function FileTable({ files }: FileTableProps) {
           isOpen={!!selectedFile}
           onClose={() => setSelectedFile(null)}
           fileName={selectedFile.fileName}
-          fileUrl={fileUrl!} // Exclamação para garantir que fileUrl nunca será nulo
+          fileUrl={fileUrl!}
         />
       )}
 
@@ -218,7 +260,7 @@ export function FileTable({ files }: FileTableProps) {
           isOpen={!!selectedFile}
           onClose={() => setSelectedFile(null)}
           fileName={selectedFile.fileName}
-          fileUrl={fileUrl!} // Exclamação para garantir que fileUrl nunca será nulo
+          fileUrl={fileUrl!}
         />
       )}
     </div>
