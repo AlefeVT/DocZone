@@ -77,7 +77,7 @@ export function DocumentEditForm({ data }: DocumentData) {
       if (selectedFile) {
         formData.append('newFileType', selectedFile.type);
         formData.append('newFileSize', selectedFile.size.toString());
-        formData.append('file', selectedFile); // Certifique-se de adicionar o arquivo ao FormData
+        formData.append('file', selectedFile); 
       } else {
         throw new Error('Nenhum arquivo foi selecionado para upload.');
       }

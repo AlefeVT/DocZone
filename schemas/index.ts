@@ -76,3 +76,9 @@ export const fileUploadSchema = z.object({
     message: 'Um documento válido deve ser selecionado',
   }),
 });
+
+export const containerSchema = z.object({
+  name: z.string().min(1, 'O nome da caixa é obrigatório'),
+  description: z.string().optional(),
+  userId: z.string().min(1, 'Usuário não autenticado.'),
+});

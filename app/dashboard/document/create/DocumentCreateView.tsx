@@ -1,37 +1,57 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import FileUploadDropzone from './_components/fileUploadDropzone';
 import SelectedFileCard from './_components/selectedFileCard';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SubmitButton } from '@/components/SubmitButtons';
 import { DocumentCreateController } from '../../../controller/document/DocumentCreateController';
 import { useRouter } from 'next/navigation';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { listContainers } from '../../container/actions';
+
+type SelectItemType = {
+  value: string;
+  label: string;
+};
 
 export default function DocumentCreateView() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [customFileName, setCustomFileName] = useState<string>('');
+  const [selectedContainer, setSelectedContainer] = useState<string>(''); // Estado para o container selecionado
   const [errors, setErrors] = useState<{
-    customFileName?: string;
     selectedFile?: string;
+    selectedContainer?: string; // Adicionado para lidar com erros de seleção de container
   }>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
 
+  const [containers, setContainers] = useState<SelectItemType[]>([]);
+
+  useEffect(() => {
+    async function fetchContainers() {
+      const data = await listContainers();
+      setContainers(
+        data.map((container: any) => ({
+          value: container.id,
+          label: container.name,
+        }))
+      );
+    }
+    fetchContainers();
+  }, []);
+
   const handleSuccess = () => {
     setSelectedFiles([]);
-    setCustomFileName('');
     setErrors({});
     router.push('/dashboard/document');
   };
 
   const handleError = (errors: {
-    customFileName?: string;
     selectedFile?: string;
+    selectedContainer?: string;
   }) => {
     setErrors(errors);
   };
@@ -62,8 +82,9 @@ export default function DocumentCreateView() {
         onSubmit={(e) =>
           DocumentCreateController.handleSubmit(
             e,
-            customFileName,
+            selectedFiles[0]?.name || '', 
             selectedFiles,
+            selectedContainer, 
             setIsLoading,
             handleSuccess,
             handleError
@@ -73,27 +94,33 @@ export default function DocumentCreateView() {
       >
         <div className="space-y-2">
           <Label
-            htmlFor="customFileName"
+            htmlFor="selectedContainer"
             className="block text-sm font-medium text-gray-700"
           >
-            Nome do documento
+            Selecione a Caixa
           </Label>
-          <Input
-            type="text"
-            id="customFileName"
-            value={customFileName}
-            onChange={(e) => {
-              setCustomFileName(e.target.value);
-              if (errors.customFileName) {
-                setErrors({ ...errors, customFileName: undefined });
-              }
-            }}
-            className="block w-full p-2 border border-gray-300 rounded-md"
-            placeholder="Digite o nome do documento"
-            required
-          />
-          {errors.customFileName && (
-            <p className="text-red-500">{errors.customFileName}</p>
+          <Select onValueChange={(value) => {
+            setSelectedContainer(value);
+            if (errors.selectedContainer) {
+              setErrors({ ...errors, selectedContainer: undefined });
+            }
+          }}>
+            <SelectTrigger className="w-[180px] p-2 border border-gray-300 rounded-md">
+              <SelectValue placeholder="Selecione a Caixa" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Caixas Disponíveis</SelectLabel>
+                {containers.map((container) => (
+                  <SelectItem key={container.value} value={container.value}>
+                    {container.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          {errors.selectedContainer && (
+            <p className="text-red-500">{errors.selectedContainer}</p>
           )}
         </div>
 
