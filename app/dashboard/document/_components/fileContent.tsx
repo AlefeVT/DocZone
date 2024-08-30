@@ -1,8 +1,8 @@
 import { FileData } from '@/interfaces/FileData';
 import FileCardList from './fileCardList';
 import { FileCardSkeleton } from './fileCardSkeleton';
-import { FileTable } from './fileTable';
 import { FileTableSkeleton } from './fileTableSkeleton';
+import { FileTable } from './table/fileTable';
 
 export function Content({
   loading,

@@ -7,40 +7,47 @@ import { PrismaClient } from '@prisma/client';
 class FileService {
   static prisma = new PrismaClient();
 
-  static async findFileByIdAndUser(fileId: string, userId: string) {
-    return await this.prisma.file.findFirst({
+  // Encontra arquivos por IDs e ID do usuário
+  static async findFilesByIdsAndUser(fileIds: string[], userId: string) {
+    return await this.prisma.file.findMany({
       where: {
-        id: fileId,
+        id: { in: fileIds },
         userId,
       },
     });
   }
 
-  static async deleteFileRecord(fileId: string) {
-    return await this.prisma.file.delete({
+  // Deleta os registros dos arquivos no banco de dados
+  static async deleteFileRecords(fileIds: string[]) {
+    return await this.prisma.file.deleteMany({
       where: {
-        id: fileId,
+        id: { in: fileIds },
       },
     });
   }
 
-  static async deleteFileFromS3(fileKey: string) {
-    const s3Params = {
-      Bucket: process.env.BUCKET_S3!,
-      Key: fileKey,
-    };
-    const command = new DeleteObjectCommand(s3Params);
-    await s3Client.send(command);
+  // Deleta os arquivos do S3
+  static async deleteFilesFromS3(fileKeys: string[]) {
+    const deletePromises = fileKeys.map((fileKey) => {
+      const s3Params = {
+        Bucket: process.env.BUCKET_S3!,
+        Key: fileKey,
+      };
+      const command = new DeleteObjectCommand(s3Params);
+      return s3Client.send(command);
+    });
+
+    await Promise.all(deletePromises);
   }
 }
 
 class FileController {
   static async handleRequest(req: NextRequest) {
-    const fileId = this.getFileIdFromRequest(req);
+    const fileIds = await this.getFileIdsFromRequest(req);
 
-    if (!fileId) {
+    if (!fileIds || fileIds.length === 0) {
       return this.createJsonResponse(
-        { error: 'fileId is required and must be a string' },
+        { error: 'Os IDs dos arquivos são obrigatórios e devem ser um array não vazio' },
         400
       );
     }
@@ -48,27 +55,33 @@ class FileController {
     const user = await currentUser();
 
     if (!user || !user.id) {
-      return this.createJsonResponse({ error: 'User not authenticated' }, 401);
+      return this.createJsonResponse({ error: 'Usuário não autenticado' }, 401);
     }
 
     try {
-      const file = await FileService.findFileByIdAndUser(fileId, user.id);
+      // Encontrar arquivos que pertencem ao usuário atual
+      const files = await FileService.findFilesByIdsAndUser(fileIds, user.id);
 
-      if (!file) {
+      if (files.length === 0) {
         return this.createJsonResponse(
-          { error: 'File not found or does not belong to the user' },
+          { error: 'Arquivos não encontrados ou não pertencem ao usuário' },
           404
         );
       }
 
-      await FileService.deleteFileFromS3(file.key);
-      await FileService.deleteFileRecord(file.id);
+      const fileKeys = files.map((file) => file.key);
 
-      return this.createJsonResponse({ message: 'File deleted successfully' });
+      // Deletar arquivos do S3
+      await FileService.deleteFilesFromS3(fileKeys);
+
+      // Deletar registros dos arquivos no banco de dados
+      await FileService.deleteFileRecords(fileIds);
+
+      return this.createJsonResponse({ message: 'Arquivos deletados com sucesso' });
     } catch (error) {
-      console.error('Error deleting file from S3 or database:', error);
+      console.error('Erro ao deletar arquivos do S3 ou do banco de dados:', error);
       return this.createJsonResponse(
-        { error: 'Failed to delete file from S3 or database' },
+        { error: 'Falha ao deletar arquivos do S3 ou do banco de dados' },
         500
       );
     } finally {
@@ -76,16 +89,23 @@ class FileController {
     }
   }
 
-  static getFileIdFromRequest(req: NextRequest): string | null {
-    const { searchParams } = new URL(req.url);
-    return searchParams.get('fileId');
+  // Extrai os IDs dos arquivos do corpo da requisição
+  static async getFileIdsFromRequest(req: NextRequest): Promise<string[] | null> {
+    try {
+      const body = await req.json();
+      return body.fileIds || null;
+    } catch (error) {
+      console.error('Falha ao analisar o corpo da requisição:', error);
+      return null;
+    }
   }
 
+  // Cria uma resposta JSON
   static createJsonResponse(data: any, status: number = 200) {
     return NextResponse.json(data, { status });
   }
 }
 
-export async function DELETE(req: NextRequest) {
+export async function POST(req: NextRequest) {
   return await FileController.handleRequest(req);
 }

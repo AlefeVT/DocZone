@@ -57,7 +57,7 @@ class FileController {
       return redirect('/auth/login');
     }
 
-    const key = this.generateFileKey(user.id, containerId, fileName, fileType);
+    const key = this.generateFileKey(user.id, containerId, fileType);
 
     try {
       const uploadUrl = await FileService.generateSignedUrl(key, fileType);
@@ -100,9 +100,9 @@ class FileController {
     return NextResponse.json(data, { status });
   }
 
-  static generateFileKey(userId: string, containerId: string, fileName: string, fileType: string) {
+  static generateFileKey(userId: string, containerId: string, fileType: string) {
     const extension = fileType.split('/')[1];
-    return `${userId}/${containerId}/${randomUUID()}-${fileName}.${extension}`;
+    return `${userId}/${containerId}/${randomUUID()}.${extension}`;
   }
 }
 

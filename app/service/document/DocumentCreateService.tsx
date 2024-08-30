@@ -1,31 +1,22 @@
 import axios from 'axios';
 import { toast } from 'sonner';
-import { fileUploadSchema } from '@/schemas';
 
 export class DocumentCreateService {
   static validateFileUpload(data: {
-    customFileName: string;
-    selectedFiles: File[]; 
+    selectedFiles: File[];
+    selectedContainer: string;
   }) {
     const errors: {
-      customFileName?: string;
       selectedFile?: string;
+      selectedContainer?: string;
     } = {};
-
-    const fileNameValidation = fileUploadSchema.shape.customFileName.safeParse(data.customFileName);
-    if (!fileNameValidation.success) {
-      errors.customFileName = fileNameValidation.error.format()._errors[0];
-    }
 
     if (data.selectedFiles.length === 0) {
       errors.selectedFile = 'Pelo menos um arquivo deve ser selecionado';
-    } else {
-      data.selectedFiles.forEach((file) => {
-        const fileValidation = fileUploadSchema.shape.selectedFile.safeParse(file);
-        if (!fileValidation.success) {
-          errors.selectedFile = fileValidation.error.format()._errors[0];
-        }
-      });
+    }
+
+    if (!data.selectedContainer) {
+      errors.selectedContainer = 'Por favor, selecione uma caixa';
     }
 
     if (Object.keys(errors).length > 0) {
@@ -40,18 +31,15 @@ export class DocumentCreateService {
 
   static async uploadToS3(
     file: File,
-    customFileName: string | null,
     selectedContainer: string 
   ): Promise<string | null> {
     try {
       if (!file) {
-        toast(
-          'Nenhum documento selecionado ou o documento selecionado é inválido'
-        );
+        toast('Nenhum documento selecionado ou o documento selecionado é inválido');
         return null;
       }
 
-      const fileName = encodeURIComponent(customFileName || file.name);
+      const fileName = encodeURIComponent(file.name); 
       const fileType = encodeURIComponent(file.type);
       const fileSize = encodeURIComponent(file.size);
 

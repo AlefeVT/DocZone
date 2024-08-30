@@ -1,0 +1,271 @@
+'use client';
+
+import * as React from 'react';
+import {
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+  flexRender,  // Use flexRender to render cells and headers
+} from '@tanstack/react-table';
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { FileData } from '@/interfaces/FileData';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Download, Edit2, EyeIcon, FileText, ImageIcon, MoreHorizontal, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FileViewerModals } from './fileViewerModals';
+import { FileDeleteModals } from './fileDeleteModals';
+import { toast } from 'sonner';
+
+interface FileTableProps {
+  files: FileData[];
+}
+
+export function FileTable({ files: initialFiles }: FileTableProps) {
+  const [files, setFiles] = React.useState<FileData[]>(initialFiles);
+  const [selectedFile, setSelectedFile] = React.useState<FileData | null>(null);
+  const [fileUrl, setFileUrl] = React.useState<string | null>(null);
+  const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const [isSingleDeleteModalOpen, setIsSingleDeleteModalOpen] = React.useState(false);
+  const [fileToDelete, setFileToDelete] = React.useState<FileData | null>(null);
+
+  const handleViewFile = (file: FileData) => {
+    if (file.fileType === 'application/pdf') {
+      const pdfUrl = `/api/file-stream?fileId=${file.id}`;
+      setFileUrl(pdfUrl);
+    } else {
+      setFileUrl(file.url);
+    }
+    setSelectedFile(file);
+  };
+
+  const confirmDeleteSelectedFiles = () => {
+    const selectedFileIds = Object.keys(rowSelection).filter((key) => rowSelection[key]);
+    if (selectedFileIds.length === 0) {
+      toast.error('Você deve selecionar pelo menos um arquivo para excluir.');
+      return;
+    }
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteFile = (file: FileData) => {
+    setFileToDelete(file);
+    setIsSingleDeleteModalOpen(true);
+  };
+
+  const table = useReactTable({
+    data: files,
+    columns: [
+      {
+        id: 'select',
+        header: ({ table }) => (
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              checked={
+                table.getIsAllPageRowsSelected() ||
+                (table.getIsSomePageRowsSelected() && 'indeterminate')
+              }
+              onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+              aria-label="Select all"
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={confirmDeleteSelectedFiles}
+                  className="flex items-center cursor-pointer"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir Selecionados
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        accessorKey: 'fileName',
+        header: 'Nome do Arquivo',
+        cell: ({ row }) => {
+          const file = row.original;
+          const icon = file.fileType.startsWith('image/') ? (
+            <ImageIcon className="h-4 w-4 mr-2" />
+          ) : (
+            <FileText className="h-4 w-4 mr-2" />
+          );
+
+          return (
+            <div className="flex items-center">
+              {icon}
+              {file.fileName}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: 'fileType',
+        header: 'Tipo de Arquivo',
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'Data de Carregamento',
+        cell: ({ getValue }) => {
+          const date = new Date(getValue<string>());
+          return new Intl.DateTimeFormat('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+          }).format(date);
+        },
+      },
+      {
+        id: 'actions',
+        header: 'Ações',
+        cell: ({ row }) => {
+          const file = row.original;
+
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Link
+                    href={`/dashboard/document/${file.id}`}
+                    className="flex items-center w-full"
+                  >
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    Editar
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleViewFile(file)}
+                  className="flex items-center cursor-pointer"
+                >
+                  <EyeIcon className="h-4 w-4 mr-2" />
+                  Visualizar
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <a
+                    href={file.url}
+                    download={file.fileName}
+                    className="flex items-center cursor-pointer"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Baixar
+                  </a>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => confirmDeleteFile(file)}
+                  className="flex items-center cursor-pointer text-red-600"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
+      },
+    ],
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    onRowSelectionChange: setRowSelection,
+    meta: {
+      onView: handleViewFile,
+    },
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
+    },
+    state: {
+      rowSelection,
+    },
+  });
+
+  return (
+    <div className="w-full">
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableCell key={header.id}>
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+                  Nenhum arquivo encontrado.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+          Anterior
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+          Próximo
+        </Button>
+      </div>
+      <FileViewerModals selectedFile={selectedFile} fileUrl={fileUrl} setSelectedFile={setSelectedFile} />
+      <FileDeleteModals
+        isDeleteModalOpen={isDeleteModalOpen}
+        isSingleDeleteModalOpen={isSingleDeleteModalOpen}
+        fileToDelete={fileToDelete}
+        closeModal={() => setIsDeleteModalOpen(false)}
+        closeSingleDeleteModal={() => setIsSingleDeleteModalOpen(false)}
+        setFiles={setFiles}
+        files={files}
+        rowSelection={rowSelection}
+        setRowSelection={setRowSelection}
+      />
+    </div>
+  );
+}

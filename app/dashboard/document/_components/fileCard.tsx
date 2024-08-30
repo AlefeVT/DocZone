@@ -48,17 +48,22 @@ interface FileCardProps {
 export default function FileCard({ file, url_signed_file }: FileCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPdfLoading, setIsPdfLoading] = useState(true);
+  const [isImageLoading, setIsImageLoading] = useState(true); // Estado para controlar o carregamento da imagem
 
   const renderFilePreview = () => {
     if (file.fileType.startsWith('image/')) {
       return (
-        <Image
-          src={file.url}
-          alt={file.fileName}
-          width={200}
-          height={200}
-          className="w-full h-auto max-h-48 object-cover"
-        />
+        <div className="relative w-full h-48 flex justify-center items-center">
+          {isImageLoading && <ImageIcon className="h-12 w-12 text-gray-500 absolute" />} 
+          <Image
+            src={file.url}
+            alt={file.fileName}
+            width={200}
+            height={200}
+            className={`w-full h-auto max-h-48 object-cover ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
+            onLoadingComplete={() => setIsImageLoading(false)} // Define como false após carregar a imagem
+          />
+        </div>
       );
     } else if (file.fileType === 'application/pdf') {
       return (
