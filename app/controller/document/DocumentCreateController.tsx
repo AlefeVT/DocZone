@@ -4,13 +4,11 @@ import { DocumentCreateService } from '@/app/service/document/DocumentCreateServ
 export class DocumentCreateController {
   static async handleSubmit(
     e: FormEvent<HTMLFormElement>,
-    customFileName: string,
-    selectedFiles: File[],  
-    selectedContainer: string, 
+    selectedFiles: File[],
+    selectedContainer: string,
     setIsLoading: (loading: boolean) => void,
-    onSuccess: (fileUrls: string[]) => void, 
+    onSuccess: (fileUrls: string[]) => void,
     onError: (errors: {
-      customFileName?: string;
       selectedFile?: string;
       selectedContainer?: string;
     }) => void
@@ -19,8 +17,8 @@ export class DocumentCreateController {
     setIsLoading(true);
 
     const validationResult = DocumentCreateService.validateFileUpload({
-      customFileName,
-      selectedFiles, 
+      selectedFiles,
+      selectedContainer,
     });
 
     if (!validationResult.success) {
@@ -33,7 +31,8 @@ export class DocumentCreateController {
       const fileUrls: string[] = [];
 
       for (const file of selectedFiles) {
-        const key = await DocumentCreateService.uploadToS3(file, customFileName, selectedContainer);
+        console.log(file);
+        const key = await DocumentCreateService.uploadToS3(file, selectedContainer);
         if (key) {
           const fileUrl = DocumentCreateService.generateFileUrl(key);
           fileUrls.push(fileUrl);
@@ -41,25 +40,19 @@ export class DocumentCreateController {
       }
 
       if (fileUrls.length > 0) {
-        onSuccess(fileUrls); 
+        onSuccess(fileUrls);
       }
+    } catch (error) {
+      console.error('Error during file upload:', error);
+      onError({ selectedFile: 'Erro ao carregar arquivos. Tente novamente.' });
     } finally {
       setIsLoading(false);
     }
   }
 
-  static handleFileChange(
-    files: File[],  
-    onFileChange: (files: File[]) => void,
-    clearError: () => void
-  ) {
-    onFileChange(files);
-    clearError();
-  }
-
   static handleRemoveFile(
     index: number,
-    selectedFiles: File[], 
+    selectedFiles: File[],
     onFileChange: (files: File[]) => void,
     setError: (message: string) => void
   ) {

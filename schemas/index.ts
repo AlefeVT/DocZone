@@ -71,10 +71,10 @@ export const RegisterSchema = z.object({
 });
 
 export const fileUploadSchema = z.object({
-  customFileName: z.string().min(1, 'O nome do documento é obrigatório'),
-  selectedFile: z.any().refine((file) => file !== null, {
-    message: 'Um documento válido deve ser selecionado',
+  selectedFile: z.array(z.any()).min(1, {
+    message: 'Pelo menos um arquivo deve ser selecionado',
   }),
+  selectedContainer: z.string().min(1, 'Por favor, selecione uma caixa'),
 });
 
 export const containerSchema = z.object({
