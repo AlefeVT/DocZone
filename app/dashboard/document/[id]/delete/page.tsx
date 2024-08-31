@@ -19,15 +19,15 @@ export default function DeleteRoute({ params }: { params: { id: string } }) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleDelete = async (fileId: string) => {
+  const handleDelete = async (fileIds: string[]) => {
     setIsLoading(true);
     try {
-      await axios.delete(`/api/remove-media?fileId=${fileId}`);
-      toast.success('Documento excluído com sucesso!');
+      await axios.post('/api/remove-media', { fileIds });
+      toast.success('Documentos excluídos com sucesso!');
       router.push('/dashboard/document');
     } catch (error) {
-      console.error('Error deleting file:', error);
-      toast.error('Erro ao excluir o documento.');
+      console.error('Error deleting files:', error);
+      toast.error('Erro ao excluir os documentos.');
     } finally {
       setIsLoading(false);
     }
@@ -35,7 +35,8 @@ export default function DeleteRoute({ params }: { params: { id: string } }) {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    await handleDelete(params.id);
+    const fileIds = params.id.split(',').map(decodeURIComponent); 
+    await handleDelete(fileIds);
   };
 
   return (
@@ -44,8 +45,8 @@ export default function DeleteRoute({ params }: { params: { id: string } }) {
         <CardHeader>
           <CardTitle>Você tem certeza absoluta?</CardTitle>
           <CardDescription>
-            Essa ação não pode ser desfeita. Isso excluirá permanentemente este
-            documento e removerá todos os dados de nossos servidores.
+            Essa ação não pode ser desfeita. Isso excluirá permanentemente estes
+            documentos e removerá todos os dados de nossos servidores.
           </CardDescription>
         </CardHeader>
         <CardFooter className="w-full flex justify-between">
@@ -53,7 +54,6 @@ export default function DeleteRoute({ params }: { params: { id: string } }) {
             <Link href={'/dashboard/document'}>Cancelar</Link>
           </Button>
           <form onSubmit={handleSubmit}>
-            <input type="hidden" name="productId" value={params.id} />
             <DeleteItem isLoading={isLoading} />
           </form>
         </CardFooter>

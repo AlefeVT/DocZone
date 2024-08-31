@@ -11,18 +11,41 @@ import { SubmitButton } from '@/components/SubmitButtons';
 import { ChangeEvent, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { fileUpdateSchema } from '@/schemas';
+import { listContainers } from '@/app/dashboard/container/actions';
+
+type SelectItemType = {
+  value: string;
+  label: string;
+};
 
 export function DocumentEditForm({ data }: DocumentData) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [customFileName, setCustomFileName] = useState<string>(
-    data.fileName || ''
-  );
+  const [customFileName, setCustomFileName] = useState<string>(data.fileName || '');
+  const [selectedContainer, setSelectedContainer] = useState<string>(data.containerId || '');
   const [errors, setErrors] = useState<{
     customFileName?: string;
     selectedFile?: string;
+    selectedContainer?: string;
   }>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
+
+  const [containers, setContainers] = useState<SelectItemType[]>([]);
+
+  useEffect(() => {
+    async function fetchContainers() {
+      const data = await listContainers();
+      setContainers(
+        data.map((container: any) => ({
+          value: container.id,
+          label: container.name,
+        }))
+      );
+    }
+    fetchContainers();
+  }, []);
 
   useEffect(() => {
     if (data.fileName && data.fileSize) {
@@ -61,43 +84,83 @@ export function DocumentEditForm({ data }: DocumentData) {
     }));
   }
 
+  function handleContainerChange(value: string) {
+    setSelectedContainer(value);
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      selectedContainer: undefined,
+    }));
+  }
+
+  function validateForm() {
+    const validationInput = {
+        customFileName,
+        selectedFile,
+        selectedContainer,
+    };
+
+    console.log('Validation input:', validationInput);
+
+    const validation = fileUpdateSchema.safeParse(validationInput);
+
+    if (!validation.success) {
+        const formErrors = validation.error.format();
+        console.error('Form Errors:', formErrors);
+        setErrors({
+            customFileName: formErrors.customFileName?._errors[0],
+            selectedFile: formErrors.selectedFile?._errors[0],
+            selectedContainer: formErrors.selectedContainer?._errors[0],
+        });
+        return false;
+    }
+
+    setErrors({});
+    return true;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsLoading(true);
 
-    try {
-      if (!data.key || !customFileName) {
-        throw new Error('fileKey e newFileName são obrigatórios');
+    if (validateForm()) {
+      try {
+        const formData = new FormData();
+        formData.append('fileKey', data.key);
+
+        if (customFileName !== data.fileName) {
+          formData.append('newFileName', customFileName);
+        }
+        if (selectedContainer !== data.containerId) {
+          formData.append('containerId', selectedContainer);
+        }
+
+        // Somente adiciona o arquivo ao formData se um novo arquivo foi selecionado
+        if (selectedFile && selectedFile.name !== data.fileName) {
+          formData.append('newFileType', selectedFile.type);
+          formData.append('newFileSize', selectedFile.size.toString());
+          formData.append('file', selectedFile);
+        }
+
+        const response = await fetch('/api/update-media', {
+          method: 'PUT',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Falha ao atualizar o arquivo');
+        }
+
+        toast.success('Documento editado com sucesso!');
+        router.push('/dashboard/document');
+      } catch (error) {
+        console.error('Erro ao atualizar o arquivo:', error);
+        toast.error('Erro ao tentar editar o documento!');
+      } finally {
+        setIsLoading(false);
       }
-
-      const formData = new FormData();
-      formData.append('fileKey', data.key);
-      formData.append('newFileName', customFileName);
-
-      if (selectedFile) {
-        formData.append('newFileType', selectedFile.type);
-        formData.append('newFileSize', selectedFile.size.toString());
-        formData.append('file', selectedFile); 
-      } else {
-        throw new Error('Nenhum arquivo foi selecionado para upload.');
-      }
-
-      const response = await fetch('/api/update-media', {
-        method: 'PUT',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Falha ao atualizar o arquivo');
-      }
-
-      toast.success('Documento editado com sucesso!');
-      router.push('/dashboard/document');
-    } catch (error) {
-      console.error('Erro ao atualizar o arquivo:', error);
-      toast.error('Erro ao tentar editar o documento!');
-    } finally {
+    } else {
+      console.error('Falha na validação do formulário');
       setIsLoading(false);
     }
   }
@@ -142,6 +205,36 @@ export function DocumentEditForm({ data }: DocumentData) {
           )}
         </div>
 
+        <div className="space-y-2 mb-10">
+          <Label
+            htmlFor="selectedContainer"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Selecione a Caixa
+          </Label>
+          <Select
+            onValueChange={handleContainerChange}
+            value={selectedContainer}
+          >
+            <SelectTrigger className="w-1/2 p-2 border border-gray-300 rounded-md">
+              <SelectValue placeholder="Selecione a Caixa" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Caixas Disponíveis</SelectLabel>
+                {containers.map((container) => (
+                  <SelectItem key={container.value} value={container.value}>
+                    {container.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          {errors.selectedContainer && (
+            <p className="text-red-500">{errors.selectedContainer}</p>
+          )}
+        </div>
+
         {!selectedFile ? (
           <>
             <FileUploadDropzone onFileChange={handleFileChange} />
@@ -158,7 +251,7 @@ export function DocumentEditForm({ data }: DocumentData) {
         )}
 
         <div className="flex justify-end">
-          <SubmitButton text="Carregar" isLoading={isLoading} />
+          <SubmitButton text="Atualizar" isLoading={isLoading} />
         </div>
       </form>
     </div>
