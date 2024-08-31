@@ -27,8 +27,17 @@ export default function ImageViewerModal({
 
   if (!isOpen) return null;
 
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+      onClick={handleOverlayClick}
+    >
       <div className="relative bg-white rounded-lg shadow-lg max-w-5xl w-full h-[85vh] flex flex-col">
         <div className="flex justify-between items-center p-4 border-b border-gray-200 rounded-t-lg">
           <h2 className="text-xl font-semibold">{fileName}</h2>
@@ -48,10 +57,10 @@ export default function ImageViewerModal({
           <Image
             src={fileUrl}
             alt={fileName}
-            layout="fill"
-            objectFit="contain"
-            className="rounded-b-lg"
-            onLoadingComplete={handleImageLoad}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="rounded-b-lg object-contain"
+            onLoad={handleImageLoad} 
           />
         </div>
       </div>

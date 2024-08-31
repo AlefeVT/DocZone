@@ -82,3 +82,17 @@ export const containerSchema = z.object({
   description: z.string().optional(),
   userId: z.string().min(1, 'Usuário não autenticado.'),
 });
+
+export const fileUpdateSchema = z.object({
+  customFileName: z.string().min(1, 'O nome do documento é obrigatório.'),
+  selectedFile: z
+    .object({
+      name: z.string().min(1, 'O nome do arquivo é obrigatório.'),
+      size: z.number().min(1, 'O arquivo deve ter um tamanho válido.'),
+      type: z.string().min(1, 'O tipo do arquivo é obrigatório.'),
+    })
+    .refine((file) => file.name && file.size > 0 && file.type, {
+      message: 'Pelo menos um arquivo deve ser selecionado.',
+    }),
+  selectedContainer: z.string().min(1, 'Por favor, selecione uma caixa'),
+});

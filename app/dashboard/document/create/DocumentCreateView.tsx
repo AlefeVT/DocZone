@@ -45,7 +45,6 @@ export default function DocumentCreateView() {
   }, []);
 
   const handleSuccess = (fileUrls: string[]) => {
-    console.log('Upload bem-sucedido:', fileUrls);
     setSelectedFiles([]);
     setErrors({});
     router.push('/dashboard/document');
@@ -55,14 +54,13 @@ export default function DocumentCreateView() {
     selectedFile?: string;
     selectedContainer?: string;
   }) => {
-    console.log('Erro na validação:', errors);
+    console.error('Erro na validação:', errors);
     setErrors(errors);
   };
 
   const handleFileChange = (files: FileList | null) => {
     if (files) {
       const fileArray = Array.from(files);
-      console.log('Arquivos selecionados:', fileArray); 
       setSelectedFiles(fileArray);
       setErrors((prevErrors) => ({
         ...prevErrors,
@@ -80,15 +78,11 @@ export default function DocumentCreateView() {
   };
 
   const validateForm = () => {
-    console.log('Arquivos antes da validação:', selectedFiles);
-    console.log('Caixa selecionada antes da validação:', selectedContainer);
   
     const validationInput = {
       selectedFile: selectedFiles,
       selectedContainer,
     };
-  
-    console.log('Dados passados para a validação:', validationInput);
   
     const validation = fileUploadSchema.safeParse(validationInput);
   

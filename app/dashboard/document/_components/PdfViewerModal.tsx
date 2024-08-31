@@ -26,8 +26,18 @@ export default function PdfViewerModal({
 
   if (!isOpen) return null;
 
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Fecha o modal se o clique for na área de sobreposição
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+      onClick={handleOverlayClick} // Adiciona o evento de clique na sobreposição
+    >
       <div className="relative bg-white rounded-lg shadow-lg max-w-5xl w-full h-[85vh]">
         <div className="flex justify-between items-center p-4 border-b border-gray-200 rounded-t-lg">
           <h2 className="text-xl font-semibold">{fileName}</h2>

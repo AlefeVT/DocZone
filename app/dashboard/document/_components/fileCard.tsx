@@ -61,7 +61,7 @@ export default function FileCard({ file, url_signed_file }: FileCardProps) {
             width={200}
             height={200}
             className={`w-full h-auto max-h-48 object-cover ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
-            onLoadingComplete={() => setIsImageLoading(false)} // Define como false após carregar a imagem
+            onLoad={() => setIsImageLoading(false)}
           />
         </div>
       );

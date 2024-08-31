@@ -6,7 +6,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  flexRender,  // Use flexRender to render cells and headers
+  flexRender,
 } from '@tanstack/react-table';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -16,8 +16,7 @@ import { Download, Edit2, EyeIcon, FileText, ImageIcon, MoreHorizontal, Trash2 }
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FileViewerModals } from './fileViewerModals';
-import { FileDeleteModals } from './fileDeleteModals';
-import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 interface FileTableProps {
   files: FileData[];
@@ -28,9 +27,9 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
   const [selectedFile, setSelectedFile] = React.useState<FileData | null>(null);
   const [fileUrl, setFileUrl] = React.useState<string | null>(null);
   const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
-  const [isSingleDeleteModalOpen, setIsSingleDeleteModalOpen] = React.useState(false);
   const [fileToDelete, setFileToDelete] = React.useState<FileData | null>(null);
+
+  const router = useRouter();
 
   const handleViewFile = (file: FileData) => {
     if (file.fileType === 'application/pdf') {
@@ -43,17 +42,24 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
   };
 
   const confirmDeleteSelectedFiles = () => {
-    const selectedFileIds = Object.keys(rowSelection).filter((key) => rowSelection[key]);
-    if (selectedFileIds.length === 0) {
-      toast.error('Você deve selecionar pelo menos um arquivo para excluir.');
-      return;
+    const selectedFileIds = Object.keys(rowSelection)
+      .filter((key) => rowSelection[key])
+      .map((key) => {
+        const index = parseInt(key, 10);
+        const selectedFile = files[index];
+        return selectedFile?.id;
+      })
+      .filter((id) => id !== undefined);
+
+    if (selectedFileIds.length > 0) {
+      const idsString = selectedFileIds.join(',');
+      router.push(`/dashboard/document/${idsString}/delete`);
     }
-    setIsDeleteModalOpen(true);
   };
 
   const confirmDeleteFile = (file: FileData) => {
     setFileToDelete(file);
-    setIsSingleDeleteModalOpen(true);
+    router.push(`/dashboard/document/${file.id}/delete`);
   };
 
   const table = useReactTable({
@@ -254,17 +260,11 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
           Próximo
         </Button>
       </div>
-      <FileViewerModals selectedFile={selectedFile} fileUrl={fileUrl} setSelectedFile={setSelectedFile} />
-      <FileDeleteModals
-        isDeleteModalOpen={isDeleteModalOpen}
-        isSingleDeleteModalOpen={isSingleDeleteModalOpen}
-        fileToDelete={fileToDelete}
-        closeModal={() => setIsDeleteModalOpen(false)}
-        closeSingleDeleteModal={() => setIsSingleDeleteModalOpen(false)}
-        setFiles={setFiles}
-        files={files}
-        rowSelection={rowSelection}
-        setRowSelection={setRowSelection}
+
+      <FileViewerModals
+        selectedFile={selectedFile}
+        fileUrl={fileUrl}
+        setSelectedFile={setSelectedFile}
       />
     </div>
   );
