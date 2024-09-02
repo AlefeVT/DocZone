@@ -8,11 +8,32 @@ import {
   useReactTable,
   flexRender,
 } from '@tanstack/react-table';
-import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { FileData } from '@/interfaces/FileData';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Download, Edit2, EyeIcon, FileText, ImageIcon, MoreHorizontal, Trash2 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Download,
+  Edit2,
+  EyeIcon,
+  FileText,
+  ImageIcon,
+  MoreHorizontal,
+  Trash2,
+} from 'lucide-react';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FileViewerModals } from './fileViewerModals';
@@ -23,11 +44,11 @@ interface FileTableProps {
 }
 
 export function FileTable({ files: initialFiles }: FileTableProps) {
-  const [files, setFiles] = React.useState<FileData[]>(initialFiles);
   const [selectedFile, setSelectedFile] = React.useState<FileData | null>(null);
   const [fileUrl, setFileUrl] = React.useState<string | null>(null);
-  const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
-  const [fileToDelete, setFileToDelete] = React.useState<FileData | null>(null);
+  const [rowSelection, setRowSelection] = React.useState<
+    Record<string, boolean>
+  >({});
 
   const router = useRouter();
 
@@ -46,7 +67,7 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
       .filter((key) => rowSelection[key])
       .map((key) => {
         const index = parseInt(key, 10);
-        const selectedFile = files[index];
+        const selectedFile = initialFiles[index];
         return selectedFile?.id;
       })
       .filter((id) => id !== undefined);
@@ -58,12 +79,11 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
   };
 
   const confirmDeleteFile = (file: FileData) => {
-    setFileToDelete(file);
     router.push(`/dashboard/document/${file.id}/delete`);
   };
 
   const table = useReactTable({
-    data: files,
+    data: initialFiles,
     columns: [
       {
         id: 'select',
@@ -74,7 +94,9 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
                 table.getIsAllPageRowsSelected() ||
                 (table.getIsSomePageRowsSelected() && 'indeterminate')
               }
-              onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+              onCheckedChange={(value) =>
+                table.toggleAllPageRowsSelected(!!value)
+              }
               aria-label="Select all"
             />
             <DropdownMenu>
@@ -225,7 +247,12 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableCell key={header.id}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </TableCell>
                 ))}
               </TableRow>
@@ -234,17 +261,26 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+                <TableCell
+                  colSpan={table.getAllColumns().length}
+                  className="h-24 text-center"
+                >
                   Nenhum arquivo encontrado.
                 </TableCell>
               </TableRow>
@@ -253,10 +289,20 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+        >
           Anterior
         </Button>
-        <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+        >
           Próximo
         </Button>
       </div>

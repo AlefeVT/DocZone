@@ -1,7 +1,10 @@
 import { FileData } from '@/interfaces/FileData';
 
 export class ContainerListController {
-  static filtercontainers(containers: FileData[], searchTerm: string): FileData[] {
+  static filtercontainers(
+    containers: FileData[],
+    searchTerm: string
+  ): FileData[] {
     return containers.filter((file) =>
       file.fileName.toLowerCase().includes(searchTerm.toLowerCase())
     );

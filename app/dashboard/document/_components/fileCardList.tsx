@@ -14,11 +14,12 @@ interface FileData {
 
 interface FileCardListProps {
   files: FileData[];
+  viewMode: 'cards' | 'table';
 }
 
 export default function FileCardList({ files }: FileCardListProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9; // Defina o número de cards por página
+  const itemsPerPage = 9;
 
   const totalPages = Math.ceil(files.length / itemsPerPage);
 
@@ -42,12 +43,9 @@ export default function FileCardList({ files }: FileCardListProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {currentFiles.map((file) => (
           <FileCard
-            url_signed_file={file.url}
+            url_signed_file={`/api/file-stream?fileId=${file.id}`}
             key={file.id}
-            file={{
-              ...file,
-              url: `/api/file-stream?fileId=${file.id}`, // URL do endpoint de streaming
-            }}
+            file={file}
           />
         ))}
       </div>

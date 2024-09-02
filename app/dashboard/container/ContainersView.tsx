@@ -9,7 +9,6 @@ import { listContainers } from './actions';
 export default function ContainerView() {
   const [containers, setContainers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('table');
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -29,7 +28,7 @@ export default function ContainerView() {
   }, []);
 
   const filterContainers = () => {
-    return containers.filter(container =>
+    return containers.filter((container) =>
       container.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
@@ -38,9 +37,12 @@ export default function ContainerView() {
 
   return (
     <div className="p-4">
-      <Header viewMode={viewMode} setViewMode={setViewMode} />
+      <Header />
       <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      <Content loading={loading} viewMode={viewMode} containers={filteredContainers} />
+      <Content
+        loading={loading}
+        containers={filteredContainers}
+      />
     </div>
   );
 }

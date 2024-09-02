@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,15 @@ import { Label } from '@/components/ui/label';
 import { SubmitButton } from '@/components/SubmitButtons';
 import { DocumentCreateController } from '../../../controller/document/DocumentCreateController';
 import { useRouter } from 'next/navigation';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { listContainers } from '../../container/actions';
 import { fileUploadSchema } from '@/schemas';
 
@@ -21,10 +29,10 @@ type SelectItemType = {
 
 export default function DocumentCreateView() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [selectedContainer, setSelectedContainer] = useState<string>(''); 
+  const [selectedContainer, setSelectedContainer] = useState<string>('');
   const [errors, setErrors] = useState<{
     selectedFile?: string;
-    selectedContainer?: string; 
+    selectedContainer?: string;
   }>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
@@ -44,7 +52,7 @@ export default function DocumentCreateView() {
     fetchContainers();
   }, []);
 
-  const handleSuccess = (fileUrls: string[]) => {
+  const handleSuccess = () => {
     setSelectedFiles([]);
     setErrors({});
     router.push('/dashboard/document');
@@ -78,14 +86,13 @@ export default function DocumentCreateView() {
   };
 
   const validateForm = () => {
-  
     const validationInput = {
       selectedFile: selectedFiles,
       selectedContainer,
     };
-  
+
     const validation = fileUploadSchema.safeParse(validationInput);
-  
+
     if (!validation.success) {
       const formErrors = validation.error.format();
       setErrors({
@@ -94,11 +101,10 @@ export default function DocumentCreateView() {
       });
       return false;
     }
-  
+
     setErrors({});
     return true;
   };
-  
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -116,7 +122,7 @@ export default function DocumentCreateView() {
           handleError
         );
       } catch (error) {
-        console.error("Erro durante o envio:", error);
+        console.error('Erro durante o envio:', error);
         setIsLoading(false);
       }
     } else {
@@ -135,10 +141,7 @@ export default function DocumentCreateView() {
         <h2 className="text-2xl font-bold">Carregar Documentos</h2>
       </div>
 
-      <form
-        onSubmit={handleSubmit} 
-        className="w-full space-y-4"
-      >
+      <form onSubmit={handleSubmit} className="w-full space-y-4">
         <div className="space-y-2 mb-10">
           <Label
             htmlFor="selectedContainer"
@@ -182,23 +185,22 @@ export default function DocumentCreateView() {
           <div className="space-y-2">
             {selectedFiles.map((file, index) => (
               <SelectedFileCard
-              key={index}
-              fileName={file.name}
-              fileSize={file.size}
-              onRemove={() =>
-                DocumentCreateController.handleRemoveFile(
-                  index,
-                  selectedFiles,
-                  setSelectedFiles,
-                  (message: string) =>
-                    setErrors((prevErrors) => ({
-                      ...prevErrors,
-                      selectedFile: message,
-                    }))
-                )
-              }
-            />
-            
+                key={index}
+                fileName={file.name}
+                fileSize={file.size}
+                onRemove={() =>
+                  DocumentCreateController.handleRemoveFile(
+                    index,
+                    selectedFiles,
+                    setSelectedFiles,
+                    (message: string) =>
+                      setErrors((prevErrors) => ({
+                        ...prevErrors,
+                        selectedFile: message,
+                      }))
+                  )
+                }
+              />
             ))}
           </div>
         )}

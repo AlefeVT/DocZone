@@ -26,7 +26,7 @@ export function Content({
   }
 
   return viewMode === 'cards' ? (
-    <FileCardList files={files} />
+    <FileCardList viewMode={viewMode} files={files} />
   ) : (
     <FileTable files={files} />
   );

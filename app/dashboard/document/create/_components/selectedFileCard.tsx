@@ -34,7 +34,7 @@ export default function SelectedFileCard({
         className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
         onClick={onRemove}
         variant={'ghost'}
-        title='Remover'
+        title="Remover"
       >
         <X className="w-5 h-5" />
       </Button>

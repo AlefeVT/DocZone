@@ -1,4 +1,11 @@
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Download, Edit2, EyeIcon, MoreHorizontal, Trash2 } from 'lucide-react';
 import Link from 'next/link';
@@ -32,22 +39,35 @@ export function FileTableActions({
         <DropdownMenuLabel>Ações</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          <Link href={`/dashboard/document/${file.id}`} className="flex items-center w-full">
+          <Link
+            href={`/dashboard/document/${file.id}`}
+            className="flex items-center w-full"
+          >
             <Edit2 className="h-4 w-4 mr-2" />
             Editar
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleViewFile(file)} className="flex items-center cursor-pointer">
+        <DropdownMenuItem
+          onClick={() => handleViewFile(file)}
+          className="flex items-center cursor-pointer"
+        >
           <EyeIcon className="h-4 w-4 mr-2" />
           Visualizar
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <a href={file.url} download={file.fileName} className="flex items-center cursor-pointer">
+          <a
+            href={file.url}
+            download={file.fileName}
+            className="flex items-center cursor-pointer"
+          >
             <Download className="h-4 w-4 mr-2" />
             Baixar
           </a>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={confirmDeleteFile} className="flex items-center cursor-pointer text-red-600">
+        <DropdownMenuItem
+          onClick={confirmDeleteFile}
+          className="flex items-center cursor-pointer text-red-600"
+        >
           <Trash2 className="h-4 w-4 mr-2" />
           Excluir
         </DropdownMenuItem>

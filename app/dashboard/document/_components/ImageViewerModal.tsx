@@ -60,7 +60,7 @@ export default function ImageViewerModal({
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="rounded-b-lg object-contain"
-            onLoad={handleImageLoad} 
+            onLoad={handleImageLoad}
           />
         </div>
       </div>

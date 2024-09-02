@@ -8,12 +8,14 @@ import { z } from 'zod';
 
 const clientContainerSchema = containerSchema.omit({ userId: true });
 
-export async function createContainer(input: z.infer<typeof clientContainerSchema>) {
+export async function createContainer(
+  input: z.infer<typeof clientContainerSchema>
+) {
   const prisma = new PrismaClient();
   const user = await currentUser();
 
   if (!user || !user.id) {
-    redirect("/auth/login")
+    redirect('/auth/login');
   }
 
   const validationResult = clientContainerSchema.safeParse(input);
@@ -26,7 +28,7 @@ export async function createContainer(input: z.infer<typeof clientContainerSchem
     data: {
       name: input.name,
       description: input.description,
-      userId: user.id,  
+      userId: user.id,
     },
   });
 

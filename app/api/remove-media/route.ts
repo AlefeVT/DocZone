@@ -44,7 +44,10 @@ class FileController {
 
     if (!fileIds || fileIds.length === 0) {
       return this.createJsonResponse(
-        { error: 'Os IDs dos arquivos são obrigatórios e devem ser um array não vazio' },
+        {
+          error:
+            'Os IDs dos arquivos são obrigatórios e devem ser um array não vazio',
+        },
         400
       );
     }
@@ -53,7 +56,10 @@ class FileController {
 
     if (splitFileIds.length === 0) {
       return this.createJsonResponse(
-        { error: 'Os IDs dos arquivos são obrigatórios e devem ser um array não vazio' },
+        {
+          error:
+            'Os IDs dos arquivos são obrigatórios e devem ser um array não vazio',
+        },
         400
       );
     }
@@ -65,7 +71,10 @@ class FileController {
     }
 
     try {
-      const files = await FileService.findFilesByIdsAndUser(splitFileIds, user.id);
+      const files = await FileService.findFilesByIdsAndUser(
+        splitFileIds,
+        user.id
+      );
 
       if (files.length === 0) {
         return this.createJsonResponse(
@@ -79,9 +88,14 @@ class FileController {
       await FileService.deleteFilesFromS3(fileKeys);
       await FileService.deleteFileRecords(splitFileIds);
 
-      return this.createJsonResponse({ message: 'Arquivos deletados com sucesso' });
+      return this.createJsonResponse({
+        message: 'Arquivos deletados com sucesso',
+      });
     } catch (error) {
-      console.error('Erro ao deletar arquivos do S3 ou do banco de dados:', error);
+      console.error(
+        'Erro ao deletar arquivos do S3 ou do banco de dados:',
+        error
+      );
       return this.createJsonResponse(
         { error: 'Falha ao deletar arquivos do S3 ou do banco de dados' },
         500
@@ -91,7 +105,9 @@ class FileController {
     }
   }
 
-  static async getFileIdsFromRequest(req: NextRequest): Promise<string[] | null> {
+  static async getFileIdsFromRequest(
+    req: NextRequest
+  ): Promise<string[] | null> {
     try {
       const body = await req.json();
       return body.fileIds || null;

@@ -1,8 +1,20 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { FileText, Image as ImageIcon, MoreHorizontal, Trash2 } from 'lucide-react';
+import {
+  FileText,
+  Image as ImageIcon,
+  MoreHorizontal,
+  Trash2,
+} from 'lucide-react';
 import { FileData } from '@/interfaces/FileData';
 
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FileTableActions } from './fileTableActions';
 import { Button } from '@/components/ui/button';
@@ -31,7 +43,9 @@ export function FileTableColumns({
               table.getIsAllPageRowsSelected() ||
               (table.getIsSomePageRowsSelected() && 'indeterminate')
             }
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
             aria-label="Select all"
           />
           <DropdownMenu>
@@ -102,7 +116,7 @@ export function FileTableColumns({
     {
       id: 'actions',
       header: 'Ações',
-      cell: ({ row, table }) => {
+      cell: ({ row }) => {
         const file = row.original;
         return (
           <FileTableActions
