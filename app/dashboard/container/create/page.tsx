@@ -1,5 +1,4 @@
-import ContainerCreateView from "./ContainerCreateView";
-
+import ContainerCreateView from './ContainerCreateView';
 
 export default function DocumentCreatePage() {
   return <ContainerCreateView />;

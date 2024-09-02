@@ -13,11 +13,9 @@ export default function FileUploadDropzone({
 }: FileUploadDropzoneProps) {
   return (
     <>
-      <Label
-            className="block text-sm font-medium text-gray-700"
-          >
-            Anexe um Documento
-          </Label>
+      <Label className="block text-sm font-medium text-gray-700">
+        Anexe um Documento
+      </Label>
       <div className="flex items-center justify-center w-full">
         <Label
           htmlFor="file-upload"
@@ -58,6 +56,5 @@ export default function FileUploadDropzone({
         </Label>
       </div>
     </>
-
   );
 }

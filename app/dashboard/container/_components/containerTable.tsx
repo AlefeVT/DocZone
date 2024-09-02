@@ -26,23 +26,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Download,
-  Edit2,
-  EyeIcon,
-  MoreHorizontal,
-  Trash2,
-} from 'lucide-react';
+import { Edit2, MoreHorizontal, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-
-interface ContainerData {
-  id: string;
-  name: string;
-  description: string | null;
-  createdAt: string;
-  filesCount: number;
-  url: string;
-}
 
 interface ContainerTableProps {
   containers: ContainerData[];
@@ -104,23 +89,6 @@ export const columns: ColumnDef<ContainerData>[] = [
                 Excluir
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onView(container)}
-              className="flex items-center cursor-pointer"
-            >
-              <EyeIcon className="h-4 w-4 mr-2" />
-              Visualizar
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <a
-                href={container.url}
-                download={container.name}
-                className="flex items-center cursor-pointer"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Baixar
-              </a>
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
@@ -136,8 +104,8 @@ export function ContainerTable({ containers }: ContainerTableProps) {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     meta: {
-      onView: (container: ContainerData) => {
-        // Função de visualização pode ser implementada aqui
+      onView: () => {
+
       },
     },
     initialState: {

@@ -8,12 +8,11 @@ import { randomUUID } from 'crypto';
 class FileService {
   static prisma = new PrismaClient();
 
-  static async uploadFileToS3(newKey: string, fileContent: Buffer, newFileType: string) {
-    console.log('Iniciando upload para S3');
-    console.log(`Chave do arquivo: ${newKey}`);
-    console.log(`Tipo de conteúdo: ${newFileType}`);
-    console.log(`Tamanho do buffer do arquivo: ${fileContent.length} bytes`);
-
+  static async uploadFileToS3(
+    newKey: string,
+    fileContent: Buffer,
+    newFileType: string
+  ) {
     const uploadParams = {
       Bucket: process.env.BUCKET_S3!,
       Key: newKey,
@@ -23,7 +22,6 @@ class FileService {
 
     try {
       await s3Client.send(new PutObjectCommand(uploadParams));
-      console.log('Upload para S3 concluído com sucesso');
     } catch (error) {
       console.error('Erro durante o upload para S3:', error);
       throw new Error('Falha ao enviar o arquivo para o S3');
@@ -33,14 +31,17 @@ class FileService {
   static generateNewKey(userId: string, fileType: string) {
     const extension = fileType.split('/')[1];
     const newKey = `${userId}/${randomUUID()}.${extension}`;
-    console.log(`Nova chave gerada: ${newKey}`);
     return newKey;
   }
 
-  static async saveFileMetadata(userId: string, key: string, fileName: string, fileType: string, fileSize: string, containerId: string) {
-    console.log('Salvando metadados do arquivo no banco de dados');
-    console.log(`userId: ${userId}, key: ${key}, fileName: ${fileName}, fileType: ${fileType}, fileSize: ${fileSize}, containerId: ${containerId}`);
-    
+  static async saveFileMetadata(
+    userId: string,
+    key: string,
+    fileName: string,
+    fileType: string,
+    fileSize: string,
+    containerId: string
+  ) {
     try {
       const result = await this.prisma.file.create({
         data: {
@@ -52,7 +53,6 @@ class FileService {
           containerId,
         },
       });
-      console.log('Metadados salvos com sucesso:', result);
       return result;
     } catch (error) {
       console.error('Erro ao salvar metadados no banco de dados:', error);
@@ -61,15 +61,11 @@ class FileService {
   }
 
   static async updateFileMetadata(fileKey: string, updates: any) {
-    console.log('Atualizando metadados do arquivo');
-    console.log(`fileKey: ${fileKey}, updates:`, updates);
-    
     try {
       const result = await this.prisma.file.update({
-        where: { key: fileKey }, 
+        where: { key: fileKey },
         data: updates,
       });
-      console.log('Metadados atualizados com sucesso:', result);
       return result;
     } catch (error) {
       console.error('Erro ao atualizar metadados no banco de dados:', error);
@@ -83,7 +79,10 @@ class FileController {
     if (req.method === 'PUT') {
       return this.handlePutRequest(req);
     } else {
-      return FileController.createJsonResponse({ error: 'Método não permitido' }, 405);
+      return FileController.createJsonResponse(
+        { error: 'Método não permitido' },
+        405
+      );
     }
   }
 
@@ -99,7 +98,10 @@ class FileController {
     const user = await currentUser();
 
     if (!fileKey || !user || !user.id) {
-      return FileController.createJsonResponse({ error: 'Dados insuficientes ou usuário não autenticado' }, 400);
+      return FileController.createJsonResponse(
+        { error: 'Dados insuficientes ou usuário não autenticado' },
+        400
+      );
     }
 
     const existingFile = await FileService.prisma.file.findUnique({
@@ -107,13 +109,15 @@ class FileController {
     });
 
     if (!existingFile) {
-      return FileController.createJsonResponse({ error: 'Arquivo não encontrado' }, 404);
+      return FileController.createJsonResponse(
+        { error: 'Arquivo não encontrado' },
+        404
+      );
     }
 
     try {
-      console.log('Processando atualização do arquivo');
       const updates: any = {};
-      
+
       if (newFileName && newFileName !== existingFile.fileName) {
         updates.fileName = newFileName;
       }
@@ -124,17 +128,20 @@ class FileController {
       if (file && newFileType && newFileSize) {
         const fileContentBuffer = Buffer.from(await file.arrayBuffer());
 
-        console.log(`Tamanho real do buffer do novo arquivo: ${fileContentBuffer.length} bytes`);
-
-        // Enviando o arquivo atualizado para o S3 com a nova chave
-        await FileService.uploadFileToS3(fileKey, fileContentBuffer, newFileType);
+        await FileService.uploadFileToS3(
+          fileKey,
+          fileContentBuffer,
+          newFileType
+        );
 
         updates.fileType = newFileType;
         updates.fileSize = newFileSize;
       }
 
-      // Atualizando os metadados do arquivo
-      const updatedFile = await FileService.updateFileMetadata(fileKey, updates);
+      const updatedFile = await FileService.updateFileMetadata(
+        fileKey,
+        updates
+      );
 
       return FileController.createJsonResponse({
         message: 'Arquivo atualizado com sucesso',
@@ -142,7 +149,10 @@ class FileController {
       });
     } catch (error) {
       console.error('Erro ao atualizar o arquivo ou metadados:', error);
-      return FileController.createJsonResponse({ error: 'Falha ao atualizar o arquivo ou metadados' }, 500);
+      return FileController.createJsonResponse(
+        { error: 'Falha ao atualizar o arquivo ou metadados' },
+        500
+      );
     } finally {
       await FileService.prisma.$disconnect();
     }

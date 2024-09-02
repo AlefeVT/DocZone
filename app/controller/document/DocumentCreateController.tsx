@@ -31,7 +31,10 @@ export class DocumentCreateController {
       const fileUrls: string[] = [];
 
       for (const file of selectedFiles) {
-        const key = await DocumentCreateService.uploadToS3(file, selectedContainer);
+        const key = await DocumentCreateService.uploadToS3(
+          file,
+          selectedContainer
+        );
         if (key) {
           const fileUrl = DocumentCreateService.generateFileUrl(key);
           fileUrls.push(fileUrl);

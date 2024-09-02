@@ -31,15 +31,17 @@ export class DocumentCreateService {
 
   static async uploadToS3(
     file: File,
-    selectedContainer: string 
+    selectedContainer: string
   ): Promise<string | null> {
     try {
       if (!file) {
-        toast('Nenhum documento selecionado ou o documento selecionado é inválido');
+        toast(
+          'Nenhum documento selecionado ou o documento selecionado é inválido'
+        );
         return null;
       }
 
-      const fileName = encodeURIComponent(file.name); 
+      const fileName = encodeURIComponent(file.name);
       const fileType = encodeURIComponent(file.type);
       const fileSize = encodeURIComponent(file.size);
 

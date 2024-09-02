@@ -30,10 +30,7 @@ export default function ContainerCreateView() {
     router.push('/dashboard/container');
   };
 
-  const handleError = (errors: {
-    name?: string;
-    description?: string;
-  }) => {
+  const handleError = (errors: { name?: string; description?: string }) => {
     setErrors(errors);
   };
 
@@ -46,7 +43,9 @@ export default function ContainerCreateView() {
 
       handleSuccess();
     } catch (error) {
-      handleError({ name: 'Ocorreu um erro ao criar a caixa. Tente novamente.' });
+      handleError({
+        name: 'Ocorreu um erro ao criar a caixa. Tente novamente.',
+      });
       console.log(error);
     } finally {
       setIsLoading(false);
@@ -108,7 +107,9 @@ export default function ContainerCreateView() {
             className="block w-full p-2 border border-gray-300 rounded-md"
             placeholder="Descreva a caixa (opcional)"
           />
-          {errors.description && <p className="text-red-500">{errors.description}</p>}
+          {errors.description && (
+            <p className="text-red-500">{errors.description}</p>
+          )}
         </div>
 
         <div className="flex justify-end">

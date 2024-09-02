@@ -21,7 +21,7 @@ class FileService {
     return await this.prisma.file.create({
       data: {
         userId,
-        containerId, 
+        containerId,
         key,
         fileName,
         fileSize,
@@ -44,7 +44,8 @@ class FileService {
 
 class FileController {
   static async handleRequest(req: NextRequest) {
-    const { fileType, fileName, fileSize, containerId } = this.getQueryParams(req);
+    const { fileType, fileName, fileSize, containerId } =
+      this.getQueryParams(req);
     const user = await currentUser();
 
     if (!fileType || !fileName || !fileSize || !containerId) {
@@ -63,7 +64,7 @@ class FileController {
       const uploadUrl = await FileService.generateSignedUrl(key, fileType);
       await FileService.createFileRecord(
         user.id,
-        containerId, 
+        containerId,
         key,
         fileName,
         fileSize,
@@ -88,7 +89,7 @@ class FileController {
     const fileType = searchParams.get('fileType');
     const fileName = searchParams.get('fileName');
     const fileSize = searchParams.get('fileSize');
-    const containerId = searchParams.get('containerId'); 
+    const containerId = searchParams.get('containerId');
     return { fileType, fileName, fileSize, containerId };
   }
 
@@ -100,7 +101,11 @@ class FileController {
     return NextResponse.json(data, { status });
   }
 
-  static generateFileKey(userId: string, containerId: string, fileType: string) {
+  static generateFileKey(
+    userId: string,
+    containerId: string,
+    fileType: string
+  ) {
     const extension = fileType.split('/')[1];
     return `${userId}/${containerId}/${randomUUID()}.${extension}`;
   }

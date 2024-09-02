@@ -13,16 +13,22 @@ export default function DocumentView() {
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('table');
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    const fetchFiles = async () => {
-      const fetchedFiles =
-        await DocumentListController.fetchFiles(DocumentService);
-      setFiles(fetchedFiles);
-      setLoading(false);
-    };
+  const fetchFiles = async () => {
+    const fetchedFiles =
+      await DocumentListController.fetchFiles(DocumentService);
+    setFiles(fetchedFiles);
+    setLoading(false);
+  };
 
-    fetchFiles();
+  useEffect(() => {
+    fetchFiles(); // Chama ao carregar a página
   }, []);
+
+  useEffect(() => {
+    if (viewMode === 'cards') {
+      fetchFiles(); // Chama sempre que o modo de visualização mudar para 'cards'
+    }
+  }, [viewMode]);
 
   const filterFiles = () => {
     return DocumentListController.filterFiles(files, searchTerm);

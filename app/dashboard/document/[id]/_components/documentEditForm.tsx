@@ -11,7 +11,15 @@ import { SubmitButton } from '@/components/SubmitButtons';
 import { ChangeEvent, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { fileUpdateSchema } from '@/schemas';
 import { listContainers } from '@/app/dashboard/container/actions';
 
@@ -22,8 +30,12 @@ type SelectItemType = {
 
 export function DocumentEditForm({ data }: DocumentData) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [customFileName, setCustomFileName] = useState<string>(data.fileName || '');
-  const [selectedContainer, setSelectedContainer] = useState<string>(data.containerId || '');
+  const [customFileName, setCustomFileName] = useState<string>(
+    data.fileName || ''
+  );
+  const [selectedContainer, setSelectedContainer] = useState<string>(
+    data.containerId || ''
+  );
   const [errors, setErrors] = useState<{
     customFileName?: string;
     selectedFile?: string;
@@ -94,24 +106,22 @@ export function DocumentEditForm({ data }: DocumentData) {
 
   function validateForm() {
     const validationInput = {
-        customFileName,
-        selectedFile,
-        selectedContainer,
+      customFileName,
+      selectedFile,
+      selectedContainer,
     };
-
-    console.log('Validation input:', validationInput);
 
     const validation = fileUpdateSchema.safeParse(validationInput);
 
     if (!validation.success) {
-        const formErrors = validation.error.format();
-        console.error('Form Errors:', formErrors);
-        setErrors({
-            customFileName: formErrors.customFileName?._errors[0],
-            selectedFile: formErrors.selectedFile?._errors[0],
-            selectedContainer: formErrors.selectedContainer?._errors[0],
-        });
-        return false;
+      const formErrors = validation.error.format();
+      console.error('Form Errors:', formErrors);
+      setErrors({
+        customFileName: formErrors.customFileName?._errors[0],
+        selectedFile: formErrors.selectedFile?._errors[0],
+        selectedContainer: formErrors.selectedContainer?._errors[0],
+      });
+      return false;
     }
 
     setErrors({});
@@ -134,7 +144,6 @@ export function DocumentEditForm({ data }: DocumentData) {
           formData.append('containerId', selectedContainer);
         }
 
-        // Somente adiciona o arquivo ao formData se um novo arquivo foi selecionado
         if (selectedFile && selectedFile.name !== data.fileName) {
           formData.append('newFileType', selectedFile.type);
           formData.append('newFileSize', selectedFile.size.toString());

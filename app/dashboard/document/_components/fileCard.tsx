@@ -54,7 +54,9 @@ export default function FileCard({ file, url_signed_file }: FileCardProps) {
     if (file.fileType.startsWith('image/')) {
       return (
         <div className="relative w-full h-48 flex justify-center items-center">
-          {isImageLoading && <ImageIcon className="h-12 w-12 text-gray-500 absolute" />} 
+          {isImageLoading && (
+            <ImageIcon className="h-12 w-12 text-gray-500 absolute" />
+          )}
           <Image
             src={file.url}
             alt={file.fileName}
