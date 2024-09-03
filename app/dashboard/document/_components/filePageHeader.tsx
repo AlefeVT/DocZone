@@ -25,7 +25,7 @@ export function Header({
               Modo de Visualização
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-full sm:w-56">
+          <DropdownMenuContent className="w-96 lg:w-52 md:w-52 sm:w-52">
             <DropdownMenuItem onSelect={() => setViewMode('cards')}>
               <BookMinus className="mr-2 h-4 w-4" />
               <span>Cartões</span>
@@ -39,7 +39,7 @@ export function Header({
         <Button className="w-full sm:w-auto">
           <Link
             href={'/dashboard/document/create'}
-            className="flex items-center justify-center gap-2"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <PlusIcon className="h-4 w-4 text-white" />
             Novo Documento

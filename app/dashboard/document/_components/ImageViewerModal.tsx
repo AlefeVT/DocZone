@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Loader } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface ImageViewerModalProps {
   isOpen: boolean;
@@ -41,12 +42,12 @@ export default function ImageViewerModal({
       <div className="relative bg-white rounded-lg shadow-lg max-w-5xl w-full h-[85vh] flex flex-col">
         <div className="flex justify-between items-center p-4 border-b border-gray-200 rounded-t-lg">
           <h2 className="text-xl font-semibold">{fileName}</h2>
-          <button
+          <Button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition"
+            variant={'ghost'}
           >
             ✖
-          </button>
+          </Button>
         </div>
         <div className="flex-grow overflow-hidden relative flex items-center justify-center">
           {loading && (

@@ -32,12 +32,11 @@ export default function DeleteRoute({ params }: { params: { id: string } }) {
       setIsLoading(false);
     }
   };
-  
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     await handleDelete(params.id);
   };
-  
 
   return (
     <div className="h-[80vh] w-full flex items-center justify-center">
@@ -45,7 +44,9 @@ export default function DeleteRoute({ params }: { params: { id: string } }) {
         <CardHeader>
           <CardTitle>Você tem certeza absoluta?</CardTitle>
           <CardDescription>
-            Essa ação não pode ser desfeita. Isso excluirá permanentemente todos os documentos que estão dentro dessa caixa e removerá todos os dados de nossos servidores.
+            Essa ação não pode ser desfeita. Isso excluirá permanentemente todos
+            os documentos que estão dentro dessa caixa e removerá todos os dados
+            de nossos servidores.
           </CardDescription>
         </CardHeader>
         <CardFooter className="w-full flex justify-between">

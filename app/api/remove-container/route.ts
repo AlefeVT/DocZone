@@ -44,7 +44,9 @@ class ContainerService {
     const listedObjects = await s3Client.send(listCommand);
 
     if (listedObjects.Contents?.length) {
-      const validKeys = listedObjects.Contents.map(({ Key }) => Key).filter((key) => key !== undefined && key !== null);
+      const validKeys = listedObjects.Contents.map(({ Key }) => Key).filter(
+        (key) => key !== undefined && key !== null
+      );
 
       if (validKeys.length > 0) {
         const deleteParams = {

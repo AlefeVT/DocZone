@@ -39,10 +39,7 @@ export default function ContainerView() {
     <div className="p-4">
       <Header />
       <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      <Content
-        loading={loading}
-        containers={filteredContainers}
-      />
+      <Content loading={loading} containers={filteredContainers} />
     </div>
   );
 }

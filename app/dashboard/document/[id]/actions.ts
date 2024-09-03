@@ -1,3 +1,5 @@
+'use server';
+
 import { PrismaClient } from '@prisma/client';
 
 export default async function getDocumentEdit(id: string) {
@@ -5,13 +7,11 @@ export default async function getDocumentEdit(id: string) {
     const prisma = new PrismaClient();
 
     const document = await prisma.file.findUnique({
-      where: {
-        id,
-      },
+      where: { id },
       include: {
-        container: true, // Inclui os dados do container relacionado, se necessário
-        user: true, // Inclui os dados do usuário relacionado, se necessário
-        signatures: true, // Inclui as assinaturas relacionadas
+        container: true,
+        user: true,
+        signatures: true,
       },
     });
 
@@ -27,10 +27,29 @@ export default async function getDocumentEdit(id: string) {
       fileName: document.fileName,
       fileSize: document.fileSize,
       fileType: document.fileType,
-      createdAt: document.createdAt,
-      container: document.container,
-      user: document.user,
-      signatures: document.signatures,
+      createdAt: document.createdAt.toISOString(),
+      container: document.container
+        ? {
+            id: document.container.id,
+            name: document.container.name,
+            description: document.container.description,
+            createdAt: document.container.createdAt.toISOString(),
+          }
+        : null,
+      user: document.user
+        ? {
+            id: document.user.id,
+            name: document.user.name,
+            email: document.user.email,
+          }
+        : undefined,
+      signatures: document.signatures.map((signature) => ({
+        id: signature.id,
+        userId: signature.userId,
+        fileId: signature.fileId,
+        signatureType: signature.signatureType,
+        signedAt: signature.signedAt.toISOString(),
+      })),
     };
   } catch (error) {
     console.error('Erro ao buscar os dados do documento:', error);

@@ -20,6 +20,12 @@ class FileService {
         fileName: true,
         fileType: true,
         createdAt: true,
+        container: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',
@@ -59,6 +65,8 @@ class FileController {
           fileName: file.fileName,
           fileType: file.fileType,
           createdAt: file.createdAt,
+          containerId: file.container?.id,
+          containerName: file.container?.name || 'Sem Container',
           url: await FileService.generateSignedUrl(file.key),
         }))
       );

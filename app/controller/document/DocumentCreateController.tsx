@@ -1,9 +1,7 @@
-import { FormEvent } from 'react';
 import { DocumentCreateService } from '@/app/service/document/DocumentCreateService';
 
 export class DocumentCreateController {
   static async handleSubmit(
-    e: FormEvent<HTMLFormElement>,
     selectedFiles: File[],
     selectedContainer: string,
     setIsLoading: (loading: boolean) => void,
@@ -13,7 +11,6 @@ export class DocumentCreateController {
       selectedContainer?: string;
     }) => void
   ) {
-    e.preventDefault();
     setIsLoading(true);
 
     const validationResult = DocumentCreateService.validateFileUpload({
@@ -28,24 +25,19 @@ export class DocumentCreateController {
     }
 
     try {
-      const fileUrls: string[] = [];
+      const fileUrls = await Promise.all(
+        selectedFiles.map(async (file) => {
+          const key = await DocumentCreateService.uploadToS3(
+            file,
+            selectedContainer
+          );
+          return key ? DocumentCreateService.generateFileUrl(key) : null;
+        })
+      );
 
-      for (const file of selectedFiles) {
-        const key = await DocumentCreateService.uploadToS3(
-          file,
-          selectedContainer
-        );
-        if (key) {
-          const fileUrl = DocumentCreateService.generateFileUrl(key);
-          fileUrls.push(fileUrl);
-        }
-      }
-
-      if (fileUrls.length > 0) {
-        onSuccess(fileUrls);
-      }
+      onSuccess(fileUrls.filter((url) => url !== null) as string[]);
     } catch (error) {
-      console.error('Error during file upload:', error);
+      console.error('Erro durante o upload do arquivo (controller):', error);
       onError({ selectedFile: 'Erro ao carregar arquivos. Tente novamente.' });
     } finally {
       setIsLoading(false);
@@ -55,11 +47,11 @@ export class DocumentCreateController {
   static handleRemoveFile(
     index: number,
     selectedFiles: File[],
-    onFileChange: (files: File[]) => void,
+    setSelectedFiles: (files: File[]) => void,
     setError: (message: string) => void
   ) {
     const updatedFiles = selectedFiles.filter((_, i) => i !== index);
-    onFileChange(updatedFiles);
+    setSelectedFiles(updatedFiles);
     if (updatedFiles.length === 0) {
       setError('Um documento válido deve ser selecionado');
     }

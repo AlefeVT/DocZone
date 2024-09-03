@@ -31,14 +31,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
-
-interface FileData {
-  id: string;
-  fileName: string;
-  fileType: string;
-  createdAt: string;
-  url: string;
-}
+import { FileData } from '@/interfaces/FileData';
 
 interface FileCardProps {
   file: FileData;
@@ -48,7 +41,7 @@ interface FileCardProps {
 export default function FileCard({ file, url_signed_file }: FileCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPdfLoading, setIsPdfLoading] = useState(true);
-  const [isImageLoading, setIsImageLoading] = useState(true); // Estado para controlar o carregamento da imagem
+  const [isImageLoading, setIsImageLoading] = useState(true);
 
   const renderFilePreview = () => {
     if (file.fileType.startsWith('image/')) {
