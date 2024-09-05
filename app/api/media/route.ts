@@ -58,7 +58,8 @@ class FileController {
       return redirect('/auth/login');
     }
 
-    const key = this.generateFileKey(user.id, containerId, fileType);
+    // Corrigido: usar await para resolver a key
+    const key = await this.generateFileKey(user.id, containerId, fileType);
 
     try {
       const uploadUrl = await FileService.generateSignedUrl(key, fileType);
@@ -101,13 +102,51 @@ class FileController {
     return NextResponse.json(data, { status });
   }
 
-  static generateFileKey(
+  static async generateFileKey(
     userId: string,
     containerId: string,
     fileType: string
   ) {
     const extension = fileType.split('/')[1];
-    return `${userId}/${containerId}/${randomUUID()}.${extension}`;
+
+    // Buscar a hierarquia do container (pai e filho)
+    const containerHierarchy = await this.getContainerHierarchy(containerId);
+
+    // Montar o caminho completo no S3, incluindo pasta pai e pasta filho
+    const containerPath = containerHierarchy.join('/');
+
+    return `${userId}/${containerPath}/${randomUUID()}.${extension}`;
+  }
+
+  // Função auxiliar para buscar a hierarquia de containers
+  static async getContainerHierarchy(containerId: string): Promise<string[]> {
+    const prisma = new PrismaClient();
+
+    interface Container {
+      id: string;
+      name: string;
+      parentId: string | null;
+    }
+
+    const hierarchy: string[] = [];
+    let currentContainerId: string | null = containerId;
+
+    while (currentContainerId) {
+      // Corrigido: Aceitar `Container | null` para lidar com a possibilidade de `null`
+      const container: Container | null = await prisma.container.findUnique({
+        where: { id: currentContainerId },
+        select: { id: true, name: true, parentId: true },
+      });
+
+      if (container) {
+        hierarchy.unshift(container.name); // Adicionar o nome do container no início
+        currentContainerId = container.parentId;
+      } else {
+        currentContainerId = null; // Não há mais containers pais
+      }
+    }
+
+    return hierarchy;
   }
 }
 

@@ -15,8 +15,14 @@ export function Header({
   setViewMode: (mode: 'cards' | 'table') => void;
 }) {
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-4 sm:space-y-0">
-      <h2 className="text-xl sm:text-2xl font-bold">Documentos</h2>
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 space-y-4 sm:space-y-0">
+      <div>
+        {/* <h2 className="text-xl sm:text-2xl font-extrabold">Documentos</h2> */}
+        <p className="text-xl sm:text-xl my-5 font-bold">
+          Selecione uma caixa que deseja visualizar seus Documentos
+        </p>
+      </div>
+
       <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

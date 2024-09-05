@@ -9,10 +9,11 @@ import { redirect } from 'next/navigation';
 class FileService {
   static prisma = new PrismaClient();
 
-  static async getFilesForUser(userId: string) {
+  static async getFilesForUserByContainer(userId: string, containerId: string) {
     return await this.prisma.file.findMany({
       where: {
         userId,
+        containerId, // Filtra pelo container selecionado
       },
       select: {
         id: true,
@@ -45,7 +46,7 @@ class FileService {
 }
 
 class FileController {
-  static async handleRequest() {
+  static async handleRequest(containerId: string) {
     const user = await currentUser();
 
     if (!user || !user.id) {
@@ -53,7 +54,10 @@ class FileController {
     }
 
     try {
-      const files = await FileService.getFilesForUser(user.id);
+      const files = await FileService.getFilesForUserByContainer(
+        user.id,
+        containerId
+      );
 
       if (!files || files.length === 0) {
         return this.createJsonResponse({ files: [] }, 200);
@@ -71,6 +75,7 @@ class FileController {
         }))
       );
 
+      console.log('chamou api documents');
       return this.createJsonResponse({ files: filesWithUrls });
     } catch (error) {
       console.error('Error generating access URLs:', error);
@@ -86,6 +91,13 @@ class FileController {
   }
 }
 
-export async function GET() {
-  return await FileController.handleRequest();
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const containerId = url.searchParams.get('containerId');
+
+  if (!containerId) {
+    return FileController.createJsonResponse({ files: [] }, 200); // Se não houver container, retorna vazio.
+  }
+
+  return await FileController.handleRequest(containerId);
 }

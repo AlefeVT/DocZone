@@ -42,10 +42,7 @@ export default function ImageViewerModal({
       <div className="relative bg-white rounded-lg shadow-lg max-w-5xl w-full h-[85vh] flex flex-col">
         <div className="flex justify-between items-center p-4 border-b border-gray-200 rounded-t-lg">
           <h2 className="text-xl font-semibold">{fileName}</h2>
-          <Button
-            onClick={onClose}
-            variant={'ghost'}
-          >
+          <Button onClick={onClose} variant={'ghost'}>
             ✖
           </Button>
         </div>

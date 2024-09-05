@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { listContainers } from '../../container/actions';
+import { GetContainersWithoutChildren } from '../../container/actions';
 import { fileUploadSchema } from '@/schemas';
 
 type ErrorState = {
@@ -42,7 +42,7 @@ export default function DocumentCreateView() {
 
   useEffect(() => {
     const fetchContainers = async () => {
-      const data = await listContainers();
+      const data = await GetContainersWithoutChildren();
       setContainers(
         data.map((container: any) => ({
           value: container.id,

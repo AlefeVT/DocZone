@@ -2,37 +2,9 @@ import { currentUser } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { s3Client } from '../s3client-config';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
-import { randomUUID } from 'crypto';
 
 class FileService {
   static prisma = new PrismaClient();
-
-  static async uploadFileToS3(
-    newKey: string,
-    fileContent: Buffer,
-    newFileType: string
-  ) {
-    const uploadParams = {
-      Bucket: process.env.BUCKET_S3!,
-      Key: newKey,
-      Body: fileContent,
-      ContentType: newFileType,
-    };
-
-    try {
-      await s3Client.send(new PutObjectCommand(uploadParams));
-    } catch (error) {
-      console.error('Erro durante o upload para S3:', error);
-      throw new Error('Falha ao enviar o arquivo para o S3');
-    }
-  }
-
-  static generateNewKey(userId: string, fileType: string) {
-    const extension = fileType.split('/')[1];
-    const newKey = `${userId}/${randomUUID()}.${extension}`;
-    return newKey;
-  }
 
   static async saveFileMetadata(
     userId: string,
@@ -90,10 +62,6 @@ class FileController {
     const formData = await req.formData();
     const fileKey = formData.get('fileKey') as string;
     const newFileName = formData.get('newFileName') as string | null;
-    const newFileType = formData.get('newFileType') as string | null;
-    const newFileSize = formData.get('newFileSize') as string | null;
-    const file = formData.get('file') as Blob | null;
-    const containerId = formData.get('containerId') as string | null;
 
     const user = await currentUser();
 
@@ -118,39 +86,25 @@ class FileController {
     try {
       const updates: any = {};
 
+      // Apenas atualizando o nome do arquivo, se for diferente do atual
       if (newFileName && newFileName !== existingFile.fileName) {
         updates.fileName = newFileName;
       }
-      if (containerId && containerId !== existingFile.containerId) {
-        updates.containerId = containerId;
-      }
 
-      if (file && newFileType && newFileSize) {
-        const fileContentBuffer = Buffer.from(await file.arrayBuffer());
-
-        await FileService.uploadFileToS3(
-          fileKey,
-          fileContentBuffer,
-          newFileType
-        );
-
-        updates.fileType = newFileType;
-        updates.fileSize = newFileSize;
-      }
-
+      // Atualizando o metadado no banco de dados
       const updatedFile = await FileService.updateFileMetadata(
         fileKey,
         updates
       );
 
       return FileController.createJsonResponse({
-        message: 'Arquivo atualizado com sucesso',
+        message: 'Nome do arquivo atualizado com sucesso',
         updatedFile,
       });
     } catch (error) {
-      console.error('Erro ao atualizar o arquivo ou metadados:', error);
+      console.error('Erro ao atualizar o nome do arquivo no banco de dados:', error);
       return FileController.createJsonResponse(
-        { error: 'Falha ao atualizar o arquivo ou metadados' },
+        { error: 'Falha ao atualizar o nome do arquivo' },
         500
       );
     } finally {

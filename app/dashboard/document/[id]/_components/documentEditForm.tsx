@@ -1,12 +1,11 @@
 'use client';
 
-import { ChangeEvent, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
-import FileUploadDropzone from '../../create/_components/fileUploadDropzone';
 import SelectedFileCard from '../../create/_components/selectedFileCard';
 import { SubmitButton } from '@/components/SubmitButtons';
 import { toast } from 'sonner';
@@ -67,27 +66,6 @@ export function DocumentEditForm({
 
     fetchUpdatedData();
   }, [data.id]);
-
-  function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setErrors((prevErrors) => ({ ...prevErrors, selectedFile: undefined }));
-    } else {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        selectedFile: 'Selecione um arquivo válido.',
-      }));
-    }
-  }
-
-  function handleRemoveFile() {
-    setSelectedFile(null);
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      selectedFile: 'Um documento válido deve ser selecionado',
-    }));
-  }
 
   function handleContainerChange(value: string) {
     setSelectedContainer(value);
@@ -174,50 +152,10 @@ export function DocumentEditForm({
           )}
         </div>
 
-        <div className="space-y-2 mb-10">
-          <Label
-            htmlFor="selectedContainer"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Selecione a Caixa
-          </Label>
-          <Select
-            onValueChange={handleContainerChange}
-            value={selectedContainer}
-          >
-            <SelectTrigger className="w-1/2 p-2 border border-gray-300 rounded-md">
-              <SelectValue placeholder="Selecione a Caixa" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Caixas Disponíveis</SelectLabel>
-                {containers.map((container) => (
-                  <SelectItem key={container.value} value={container.value}>
-                    {container.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          {errors.selectedContainer && (
-            <p className="text-red-500">{errors.selectedContainer}</p>
-          )}
-        </div>
-
-        {!selectedFile ? (
-          <>
-            <FileUploadDropzone onFileChange={handleFileChange} />
-            {errors.selectedFile && (
-              <p className="text-red-500">{errors.selectedFile}</p>
-            )}
-          </>
-        ) : (
-          <SelectedFileCard
-            fileName={selectedFile.name}
-            fileSize={selectedFile.size}
-            onRemove={handleRemoveFile}
-          />
-        )}
+        <SelectedFileCard
+          fileName={selectedFile ? selectedFile.name : 'Arquivo não selecionado'}
+          fileSize={selectedFile ? selectedFile.size : 0}
+        />
 
         <div className="flex justify-end">
           <SubmitButton text="Atualizar" isLoading={isLoading} />

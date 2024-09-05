@@ -1,18 +1,15 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { FileTextIcon, X } from 'lucide-react';
+import { FileTextIcon } from 'lucide-react';
 
 interface SelectedFileCardProps {
   fileName: string;
   fileSize: number;
-  onRemove: () => void;
 }
 
 export default function SelectedFileCard({
   fileName,
   fileSize,
-  onRemove,
 }: SelectedFileCardProps) {
   return (
     <div className="flex items-center justify-between p-4 border rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:border-gray-600">
@@ -29,15 +26,6 @@ export default function SelectedFileCard({
           </p>
         </div>
       </div>
-      <Button
-        type="button"
-        className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
-        onClick={onRemove}
-        variant={'ghost'}
-        title="Remover"
-      >
-        <X className="w-5 h-5" />
-      </Button>
     </div>
   );
 }
