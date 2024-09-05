@@ -1,8 +1,10 @@
 interface ContainerData {
+  id: string;
+  name: string;
+  description: string | null;
+  createdAt: Date;
+  filesCount: number;
+  files: {
     id: string;
-    name: string;
-    description: string | null;
-    createdAt: string;
-    filesCount: number;
-    url: string;
+  }[];
 }

@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { Loader } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -27,7 +28,6 @@ export default function PdfViewerModal({
   if (!isOpen) return null;
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Fecha o modal se o clique for na área de sobreposição
     if (e.target === e.currentTarget) {
       onClose();
     }
@@ -36,17 +36,14 @@ export default function PdfViewerModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-      onClick={handleOverlayClick} // Adiciona o evento de clique na sobreposição
+      onClick={handleOverlayClick}
     >
       <div className="relative bg-white rounded-lg shadow-lg max-w-5xl w-full h-[85vh]">
         <div className="flex justify-between items-center p-4 border-b border-gray-200 rounded-t-lg">
           <h2 className="text-xl font-semibold">{fileName}</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition"
-          >
+          <Button onClick={onClose} variant={'ghost'}>
             ✖
-          </button>
+          </Button>
         </div>
         <div className="h-[calc(100%-3.5rem)] overflow-hidden relative">
           {loading && (

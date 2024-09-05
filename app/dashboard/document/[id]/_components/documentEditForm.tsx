@@ -1,14 +1,13 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
-import FileUploadDropzone from '../../create/_components/fileUploadDropzone';
 import SelectedFileCard from '../../create/_components/selectedFileCard';
 import { SubmitButton } from '@/components/SubmitButtons';
-import { ChangeEvent, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import {
@@ -20,21 +19,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { fileUpdateSchema } from '@/schemas';
-import { listContainers } from '@/app/dashboard/container/actions';
+import { DocumentData } from '@/interfaces/DocumentData';
+import { DocumentEditController } from '@/app/controller/document/DocumentEditController';
 
 type SelectItemType = {
   value: string;
   label: string;
 };
 
-export function DocumentEditForm({ data }: DocumentData) {
+export function DocumentEditForm({
+  initialData,
+}: {
+  initialData: DocumentData;
+}) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [customFileName, setCustomFileName] = useState<string>(
-    data.fileName || ''
+    initialData.fileName || ''
   );
   const [selectedContainer, setSelectedContainer] = useState<string>(
-    data.containerId || ''
+    initialData.containerId || ''
   );
   const [errors, setErrors] = useState<{
     customFileName?: string;
@@ -43,58 +46,26 @@ export function DocumentEditForm({ data }: DocumentData) {
   }>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
-
   const [containers, setContainers] = useState<SelectItemType[]>([]);
+  const [data, setData] = useState<DocumentData>(initialData);
 
   useEffect(() => {
-    async function fetchContainers() {
-      const data = await listContainers();
-      setContainers(
-        data.map((container: any) => ({
-          value: container.id,
-          label: container.name,
-        }))
-      );
-    }
-    fetchContainers();
+    DocumentEditController.fetchContainers(setContainers);
   }, []);
 
   useEffect(() => {
-    if (data.fileName && data.fileSize) {
-      const simulatedFile = new File([data.fileName], data.fileName, {
-        type: data.fileType,
-        lastModified: new Date(data.createdAt).getTime(),
-      });
-
-      Object.defineProperty(simulatedFile, 'size', {
-        value: parseInt(data.fileSize, 10),
-        writable: false,
-      });
-
-      setSelectedFile(simulatedFile);
+    async function fetchUpdatedData() {
+      const updatedData = await DocumentEditController.getDocumentEditData(
+        data.id
+      );
+      setData(updatedData);
+      setCustomFileName(updatedData.fileName || '');
+      setSelectedContainer(updatedData.containerId || '');
+      DocumentEditController.initializeFileData(updatedData, setSelectedFile);
     }
-  }, [data.fileName, data.fileSize, data.fileType, data.createdAt]);
 
-  function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setErrors((prevErrors) => ({ ...prevErrors, selectedFile: undefined }));
-    } else {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        selectedFile: 'Selecione um arquivo válido.',
-      }));
-    }
-  }
-
-  function handleRemoveFile() {
-    setSelectedFile(null);
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      selectedFile: 'Um documento válido deve ser selecionado',
-    }));
-  }
+    fetchUpdatedData();
+  }, [data.id]);
 
   function handleContainerChange(value: string) {
     setSelectedContainer(value);
@@ -111,21 +82,7 @@ export function DocumentEditForm({ data }: DocumentData) {
       selectedContainer,
     };
 
-    const validation = fileUpdateSchema.safeParse(validationInput);
-
-    if (!validation.success) {
-      const formErrors = validation.error.format();
-      console.error('Form Errors:', formErrors);
-      setErrors({
-        customFileName: formErrors.customFileName?._errors[0],
-        selectedFile: formErrors.selectedFile?._errors[0],
-        selectedContainer: formErrors.selectedContainer?._errors[0],
-      });
-      return false;
-    }
-
-    setErrors({});
-    return true;
+    return DocumentEditController.validateForm(validationInput, setErrors);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -134,38 +91,19 @@ export function DocumentEditForm({ data }: DocumentData) {
 
     if (validateForm()) {
       try {
-        const formData = new FormData();
-        formData.append('fileKey', data.key);
-
-        if (customFileName !== data.fileName) {
-          formData.append('newFileName', customFileName);
-        }
-        if (selectedContainer !== data.containerId) {
-          formData.append('containerId', selectedContainer);
-        }
-
-        if (selectedFile && selectedFile.name !== data.fileName) {
-          formData.append('newFileType', selectedFile.type);
-          formData.append('newFileSize', selectedFile.size.toString());
-          formData.append('file', selectedFile);
-        }
-
-        const response = await fetch('/api/update-media', {
-          method: 'PUT',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Falha ao atualizar o arquivo');
-        }
-
-        toast.success('Documento editado com sucesso!');
-        router.push('/dashboard/document');
+        await DocumentEditController.handleSubmit(
+          e,
+          customFileName,
+          selectedContainer,
+          selectedFile,
+          data,
+          setIsLoading,
+          router,
+          setErrors
+        );
       } catch (error) {
         console.error('Erro ao atualizar o arquivo:', error);
         toast.error('Erro ao tentar editar o documento!');
-      } finally {
         setIsLoading(false);
       }
     } else {
@@ -214,50 +152,10 @@ export function DocumentEditForm({ data }: DocumentData) {
           )}
         </div>
 
-        <div className="space-y-2 mb-10">
-          <Label
-            htmlFor="selectedContainer"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Selecione a Caixa
-          </Label>
-          <Select
-            onValueChange={handleContainerChange}
-            value={selectedContainer}
-          >
-            <SelectTrigger className="w-1/2 p-2 border border-gray-300 rounded-md">
-              <SelectValue placeholder="Selecione a Caixa" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Caixas Disponíveis</SelectLabel>
-                {containers.map((container) => (
-                  <SelectItem key={container.value} value={container.value}>
-                    {container.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          {errors.selectedContainer && (
-            <p className="text-red-500">{errors.selectedContainer}</p>
-          )}
-        </div>
-
-        {!selectedFile ? (
-          <>
-            <FileUploadDropzone onFileChange={handleFileChange} />
-            {errors.selectedFile && (
-              <p className="text-red-500">{errors.selectedFile}</p>
-            )}
-          </>
-        ) : (
-          <SelectedFileCard
-            fileName={selectedFile.name}
-            fileSize={selectedFile.size}
-            onRemove={handleRemoveFile}
-          />
-        )}
+        <SelectedFileCard
+          fileName={selectedFile ? selectedFile.name : 'Arquivo não selecionado'}
+          fileSize={selectedFile ? selectedFile.size : 0}
+        />
 
         <div className="flex justify-end">
           <SubmitButton text="Atualizar" isLoading={isLoading} />

@@ -1,4 +1,3 @@
-import { FileData } from '@/interfaces/FileData';
 import { ContainerTable } from './containerTable';
 import { ContainerTableSkeleton } from './containerTableSkeleton';
 
@@ -10,12 +9,8 @@ export function Content({
   containers: ContainerData[];
 }) {
   if (loading) {
-    return (
-      <ContainerTableSkeleton />
-    )
+    return <ContainerTableSkeleton />;
   } else {
-    return (
-      <ContainerTable containers={containers} />
-    )
+    return <ContainerTable containers={containers} />;
   }
 }

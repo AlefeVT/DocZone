@@ -150,6 +150,11 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
         },
       },
       {
+        accessorKey: 'containerName',
+        header: 'Caixa',
+        cell: ({ getValue }) => getValue<string>(),
+      },
+      {
         accessorKey: 'fileType',
         header: 'Tipo de Arquivo',
       },

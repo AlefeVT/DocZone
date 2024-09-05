@@ -53,12 +53,8 @@ export const columns: ColumnDef<ContainerData>[] = [
   {
     id: 'actions',
     header: 'Ações',
-    cell: ({ row, table }) => {
+    cell: ({ row }) => {
       const container = row.original;
-      const meta = table.options.meta || {};
-      const { onView } = meta as {
-        onView: (container: ContainerData) => void;
-      };
 
       return (
         <DropdownMenu>
@@ -104,9 +100,7 @@ export function ContainerTable({ containers }: ContainerTableProps) {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     meta: {
-      onView: () => {
-
-      },
+      onView: () => {},
     },
     initialState: {
       pagination: {

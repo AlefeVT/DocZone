@@ -15,8 +15,14 @@ export function Header({
   setViewMode: (mode: 'cards' | 'table') => void;
 }) {
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-4 sm:space-y-0">
-      <h2 className="text-xl sm:text-2xl font-bold">Documentos</h2>
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 space-y-4 sm:space-y-0">
+      <div>
+        {/* <h2 className="text-xl sm:text-2xl font-extrabold">Documentos</h2> */}
+        <p className="text-xl sm:text-xl my-5 font-bold">
+          Selecione uma caixa que deseja visualizar seus Documentos
+        </p>
+      </div>
+
       <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -25,7 +31,7 @@ export function Header({
               Modo de Visualização
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-full sm:w-56">
+          <DropdownMenuContent className="w-96 lg:w-52 md:w-52 sm:w-52">
             <DropdownMenuItem onSelect={() => setViewMode('cards')}>
               <BookMinus className="mr-2 h-4 w-4" />
               <span>Cartões</span>
@@ -39,7 +45,7 @@ export function Header({
         <Button className="w-full sm:w-auto">
           <Link
             href={'/dashboard/document/create'}
-            className="flex items-center justify-center gap-2"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <PlusIcon className="h-4 w-4 text-white" />
             Novo Documento

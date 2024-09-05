@@ -80,7 +80,7 @@ export const fileUploadSchema = z.object({
 export const containerSchema = z.object({
   name: z.string().min(1, 'O nome da caixa é obrigatório'),
   description: z.string().optional(),
-  userId: z.string().min(1, 'Usuário não autenticado.'),
+  parentId: z.string().nullable().optional(), // parentId é opcional e pode ser nulo
 });
 
 export const fileUpdateSchema = z.object({

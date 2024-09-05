@@ -2,12 +2,16 @@ import { FileData } from '@/interfaces/FileData';
 import axios from 'axios';
 
 export class DocumentService {
-  static async fetchFiles(): Promise<FileData[]> {
+  static async fetchFilesByContainer(containerId: string): Promise<FileData[]> {
+    if (!containerId) return []; // Se não houver container selecionado, retorne vazio.
+
     try {
-      const { data } = await axios.get(`/api/file-access-url`);
+      const { data } = await axios.get(
+        `/api/get-documents?containerId=${containerId}`
+      );
       return data.files || [];
     } catch (error) {
-      console.error('Error fetching file data:', error);
+      console.error('Erro ao buscar dados do arquivo (service):', error);
       return [];
     }
   }

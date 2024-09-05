@@ -19,8 +19,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { listContainers } from '../../container/actions';
+import { GetContainersWithoutChildren } from '../../container/actions';
 import { fileUploadSchema } from '@/schemas';
+
+type ErrorState = {
+  selectedFile?: string;
+  selectedContainer?: string;
+};
 
 type SelectItemType = {
   value: string;
@@ -30,25 +35,21 @@ type SelectItemType = {
 export default function DocumentCreateView() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [selectedContainer, setSelectedContainer] = useState<string>('');
-  const [errors, setErrors] = useState<{
-    selectedFile?: string;
-    selectedContainer?: string;
-  }>({});
+  const [errors, setErrors] = useState<ErrorState>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [containers, setContainers] = useState<SelectItemType[]>([]);
   const router = useRouter();
 
-  const [containers, setContainers] = useState<SelectItemType[]>([]);
-
   useEffect(() => {
-    async function fetchContainers() {
-      const data = await listContainers();
+    const fetchContainers = async () => {
+      const data = await GetContainersWithoutChildren();
       setContainers(
         data.map((container: any) => ({
           value: container.id,
           label: container.name,
         }))
       );
-    }
+    };
     fetchContainers();
   }, []);
 
@@ -58,39 +59,34 @@ export default function DocumentCreateView() {
     router.push('/dashboard/document');
   };
 
-  const handleError = (errors: {
-    selectedFile?: string;
-    selectedContainer?: string;
-  }) => {
-    console.error('Erro na validação:', errors);
-    setErrors(errors);
+  const handleError = (errorState: ErrorState) => {
+    console.error('Erro na validação (view):', errorState);
+    setErrors(errorState);
   };
 
   const handleFileChange = (files: FileList | null) => {
     if (files) {
       const fileArray = Array.from(files);
       setSelectedFiles(fileArray);
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        selectedFile: undefined,
-      }));
+      clearFileError();
     }
   };
 
   const handleContainerChange = (value: string) => {
     setSelectedContainer(value);
+    clearContainerError();
+  };
+
+  const clearFileError = () =>
+    setErrors((prevErrors) => ({ ...prevErrors, selectedFile: undefined }));
+  const clearContainerError = () =>
     setErrors((prevErrors) => ({
       ...prevErrors,
       selectedContainer: undefined,
     }));
-  };
 
   const validateForm = () => {
-    const validationInput = {
-      selectedFile: selectedFiles,
-      selectedContainer,
-    };
-
+    const validationInput = { selectedFile: selectedFiles, selectedContainer };
     const validation = fileUploadSchema.safeParse(validationInput);
 
     if (!validation.success) {
@@ -102,9 +98,11 @@ export default function DocumentCreateView() {
       return false;
     }
 
-    setErrors({});
+    clearErrors();
     return true;
   };
+
+  const clearErrors = () => setErrors({});
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -114,7 +112,6 @@ export default function DocumentCreateView() {
 
       try {
         await DocumentCreateController.handleSubmit(
-          e,
           selectedFiles,
           selectedContainer,
           setIsLoading,
@@ -122,19 +119,19 @@ export default function DocumentCreateView() {
           handleError
         );
       } catch (error) {
-        console.error('Erro durante o envio:', error);
+        console.error('Erro durante o envio (view):', error);
         setIsLoading(false);
       }
     } else {
-      console.error('Falha na validação do formulário');
+      console.error('Falha na validação do formulário (view)');
     }
   };
 
   return (
     <div className="flex flex-col items-center p-4">
       <div className="w-full flex items-center mb-10 gap-8">
-        <Button variant={'outline'} size={'icon'} title="Voltar" asChild>
-          <Link href={'/dashboard/document'}>
+        <Button variant="outline" size="icon" title="Voltar" asChild>
+          <Link href="/dashboard/document">
             <ChevronLeft className="w-4 h-4" />
           </Link>
         </Button>
@@ -172,7 +169,7 @@ export default function DocumentCreateView() {
           )}
         </div>
 
-        {!selectedFiles.length ? (
+        {selectedFiles.length === 0 ? (
           <div className="space-y-2">
             <FileUploadDropzone
               onFileChange={(e) => handleFileChange(e.target.files)}
@@ -193,7 +190,7 @@ export default function DocumentCreateView() {
                     index,
                     selectedFiles,
                     setSelectedFiles,
-                    (message: string) =>
+                    (message) =>
                       setErrors((prevErrors) => ({
                         ...prevErrors,
                         selectedFile: message,

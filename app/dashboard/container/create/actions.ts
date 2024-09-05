@@ -6,11 +6,7 @@ import { PrismaClient } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-const clientContainerSchema = containerSchema.omit({ userId: true });
-
-export async function createContainer(
-  input: z.infer<typeof clientContainerSchema>
-) {
+export async function createContainer(input: z.infer<typeof containerSchema>) {
   const prisma = new PrismaClient();
   const user = await currentUser();
 
@@ -18,7 +14,7 @@ export async function createContainer(
     redirect('/auth/login');
   }
 
-  const validationResult = clientContainerSchema.safeParse(input);
+  const validationResult = containerSchema.safeParse(input);
 
   if (!validationResult.success) {
     throw validationResult.error;
@@ -29,6 +25,7 @@ export async function createContainer(
       name: input.name,
       description: input.description,
       userId: user.id,
+      parentId: input.parentId || null,
     },
   });
 

@@ -6,10 +6,7 @@ export class DocumentCreateService {
     selectedFiles: File[];
     selectedContainer: string;
   }) {
-    const errors: {
-      selectedFile?: string;
-      selectedContainer?: string;
-    } = {};
+    const errors: { selectedFile?: string; selectedContainer?: string } = {};
 
     if (data.selectedFiles.length === 0) {
       errors.selectedFile = 'Pelo menos um arquivo deve ser selecionado';
@@ -34,33 +31,34 @@ export class DocumentCreateService {
     selectedContainer: string
   ): Promise<string | null> {
     try {
-      if (!file) {
-        toast(
-          'Nenhum documento selecionado ou o documento selecionado é inválido'
-        );
-        return null;
-      }
-
-      const fileName = encodeURIComponent(file.name);
-      const fileType = encodeURIComponent(file.type);
-      const fileSize = encodeURIComponent(file.size);
-
-      const { data } = await axios.get(
-        `/api/media?fileType=${fileType}&fileName=${fileName}&fileSize=${fileSize}&containerId=${selectedContainer}`
+      const { uploadUrl, key } = await this.getUploadUrl(
+        file,
+        selectedContainer
       );
-      const { uploadUrl, key } = data;
 
       await axios.put(uploadUrl, file);
 
       return key;
     } catch (error) {
-      console.error('Error uploading file:', error);
-      toast('Failed to upload file');
+      console.error('Erro ao carregar o arquivo (service):', error);
+      toast('Falha ao carregar o arquivo');
       return null;
     }
   }
 
+  private static async getUploadUrl(file: File, containerId: string) {
+    const fileName = encodeURIComponent(file.name);
+    const fileType = encodeURIComponent(file.type);
+    const fileSize = encodeURIComponent(file.size);
+
+    const { data } = await axios.get(
+      `/api/media?fileType=${fileType}&fileName=${fileName}&fileSize=${fileSize}&containerId=${containerId}`
+    );
+
+    return data;
+  }
+
   static generateFileUrl(key: string): string {
-    return `/api/file-access-url?key=${encodeURIComponent(key)}`;
+    return `/api/get-documents?key=${encodeURIComponent(key)}`;
   }
 }

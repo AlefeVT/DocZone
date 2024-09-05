@@ -1,3 +1,9 @@
-export default function Dashboard() {
-  return <div>Dashboard</div>;
+import DashboardView from './DashboardView';
+
+export default function Document() {
+  return (
+    <div>
+      <DashboardView />
+    </div>
+  );
 }

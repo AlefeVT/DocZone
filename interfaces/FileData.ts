@@ -5,4 +5,6 @@ export interface FileData {
   fileType: string;
   createdAt: string;
   url: string;
+  containerId?: string; // ID do container, se existir
+  containerName?: string; // Nome do container, se existir
 }
