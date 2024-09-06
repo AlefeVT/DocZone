@@ -7,18 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { InfoCard } from './_components/dashboardInfoCards';
 import { DocumentBarChart } from './_components/DocumentBarChart';
 import { DocumentLineChart } from './_components/DocumentLineChart';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardView() {
-  const [dashboardData, setDashboardData] = useState({
-    totalDocuments: 0,
-    totalContainers: 0,
-    totalStorageUsed: '0',
-  });
-
+  const [loading, setLoading] = useState(true);
   const [animatedData, setAnimatedData] = useState({
     totalDocuments: 0,
     totalContainers: 0,
-    totalStorageUsed: '0',
+    totalStorageUsedSize: 0,
+    totalStorageUsedUnit: '',
   });
 
   const [dataBar, setDataBar] = useState([]);
@@ -29,18 +26,20 @@ export default function DashboardView() {
       try {
         const response = await fetch('/api/dashboard');
         const data = await response.json();
-        setDashboardData(data);
 
         animateCountUp(
           data.totalDocuments,
           data.totalContainers,
-          data.totalStorageUsed
+          data.totalStorageUsed.size,
+          data.totalStorageUsed.unit
         );
 
         setDataBar(data.documentsPerContainer);
         setDataLine(data.documentCreationOverTime);
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
+      } finally {
+        setLoading(false); // Definir loading como falso após o carregamento
       }
     }
 
@@ -50,19 +49,23 @@ export default function DashboardView() {
   const animateCountUp = (
     finalDocuments: number,
     finalContainers: number,
-    finalStorage: string
+    finalStorageSize: number,
+    finalStorageUnit: string
   ) => {
     const duration = 2000;
     const steps = 60;
     let currentDocuments = 0;
     let currentContainers = 0;
+    let currentStorageSize = 0;
 
     const incrementDocuments = finalDocuments / steps;
     const incrementContainers = finalContainers / steps;
+    const incrementStorageSize = finalStorageSize / steps;
 
     const interval = setInterval(() => {
       currentDocuments += incrementDocuments;
       currentContainers += incrementContainers;
+      currentStorageSize += incrementStorageSize;
 
       setAnimatedData({
         totalDocuments: Math.min(Math.round(currentDocuments), finalDocuments),
@@ -70,12 +73,17 @@ export default function DashboardView() {
           Math.round(currentContainers),
           finalContainers
         ),
-        totalStorageUsed: finalStorage,
+        totalStorageUsedSize: Math.min(
+          parseFloat(currentStorageSize.toFixed(2)),
+          finalStorageSize
+        ),
+        totalStorageUsedUnit: finalStorageUnit,
       });
 
       if (
         currentDocuments >= finalDocuments &&
-        currentContainers >= finalContainers
+        currentContainers >= finalContainers &&
+        currentStorageSize >= finalStorageSize
       ) {
         clearInterval(interval);
       }
@@ -87,24 +95,34 @@ export default function DashboardView() {
       <h1 className="text-2xl font-bold">Painel de informações</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-        <InfoCard
-          title="Documentos Cadastrados"
-          value={animatedData.totalDocuments.toString()}
-          icon={<FileText size={25} className="text-gray-500" />}
-          colorClass="text-primary"
-        />
-        <InfoCard
-          title="Caixas Cadastradas"
-          value={animatedData.totalContainers.toString()}
-          icon={<Box size={25} className="text-gray-500" />}
-          colorClass="text-primary"
-        />
-        <InfoCard
-          title="Armazenamento ocupado"
-          value={animatedData.totalStorageUsed}
-          icon={<Server size={25} className="text-gray-500" />}
-          colorClass="text-primary"
-        />
+        {loading ? (
+          <>
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+          </>
+        ) : (
+          <>
+            <InfoCard
+              title="Documentos Cadastrados"
+              value={animatedData.totalDocuments.toString()}
+              icon={<FileText size={25} className="text-gray-500" />}
+              colorClass="text-primary"
+            />
+            <InfoCard
+              title="Caixas Cadastradas"
+              value={animatedData.totalContainers.toString()}
+              icon={<Box size={25} className="text-gray-500" />}
+              colorClass="text-primary"
+            />
+            <InfoCard
+              title="Armazenamento ocupado"
+              value={`${animatedData.totalStorageUsedSize} ${animatedData.totalStorageUsedUnit}`}
+              icon={<Server size={25} className="text-gray-500" />}
+              colorClass="text-primary"
+            />
+          </>
+        )}
       </div>
 
       <Separator className="my-8" />
@@ -116,7 +134,11 @@ export default function DashboardView() {
               <CardTitle>Distribuição de Documentos por Caixa</CardTitle>
             </CardHeader>
             <CardContent>
-              <DocumentBarChart data={dataBar} />
+              {loading ? (
+                <Skeleton className="h-48 w-full" />
+              ) : (
+                <DocumentBarChart data={dataBar} />
+              )}
             </CardContent>
           </Card>
         </div>
@@ -127,7 +149,11 @@ export default function DashboardView() {
               <CardTitle>Crescimento de Documentos ao Longo do Tempo</CardTitle>
             </CardHeader>
             <CardContent>
-              <DocumentLineChart data={dataLine} />
+              {loading ? (
+                <Skeleton className="h-48 w-full" />
+              ) : (
+                <DocumentLineChart data={dataLine} />
+              )}
             </CardContent>
           </Card>
         </div>

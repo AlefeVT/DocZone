@@ -17,6 +17,7 @@ import {
   FolderSync,
   FileText,
   Image as ImageIcon,
+  CircleAlert,
 } from 'lucide-react';
 import { useState } from 'react';
 import PdfViewerModal from './PdfViewerModal';
@@ -32,6 +33,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { FileData } from '@/interfaces/FileData';
+import { toast } from 'sonner';
 
 interface FileCardProps {
   file: FileData;
@@ -42,6 +44,17 @@ export default function FileCard({ file, url_signed_file }: FileCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPdfLoading, setIsPdfLoading] = useState(true);
   const [isImageLoading, setIsImageLoading] = useState(true);
+
+  const handleViewFile = () => {
+    if (file.fileType === "application/pdf" || file.fileType.startsWith("image/")) {
+      setIsModalOpen(true);
+    } else {
+      toast("Visualização não suportada",{
+        icon: <CircleAlert />,
+        description: "Só é possível visualizar PDFs e imagens.",
+      });
+    }
+  };
 
   const renderFilePreview = () => {
     if (file.fileType.startsWith('image/')) {
@@ -65,7 +78,7 @@ export default function FileCard({ file, url_signed_file }: FileCardProps) {
         <div className="w-full h-48 flex justify-center items-center">
           {isPdfLoading && <FolderSync className="h-12 w-12 text-gray-500" />}
           <iframe
-            src={file.url}
+            src={url_signed_file}
             className={`w-full h-48 ${isPdfLoading ? 'hidden' : ''}`}
             frameBorder="0"
             title="PDF Preview"
@@ -79,17 +92,31 @@ export default function FileCard({ file, url_signed_file }: FileCardProps) {
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       )
     ) {
-      return <FileSpreadsheetIcon className="h-36 w-36 text-gray-500" />;
+      return (
+        <div className='flex flex-col justify-center'>
+          <FileSpreadsheetIcon className="h-36 w-36 text-gray-500" />
+          <p className="text-gray-700 mt-2">
+            Não é possível visualizar documentos que não sejam PDFs ou imagens.
+          </p>
+        </div>
+      );
     } else {
-      return <FileTextIcon className="h-36 w-36 text-gray-500" />;
+      return (
+        <div className='flex flex-col justify-center'>
+          <FileTextIcon className="h-36 w-36 text-gray-500 mx-auto" />
+          <p className="text-gray-700 mt-2">
+            Não é possível visualizar documentos que não sejam PDFs ou imagens.
+          </p>
+        </div>
+      );
     }
   };
 
   const renderFileIcon = () => {
     if (file.fileType.startsWith('image/')) {
-      return <ImageIcon className="h-4 w-4 mr-2" />;
+      return <ImageIcon className="min-h-4 min-w-4 mr-2" />;
     } else {
-      return <FileText className="h-4 w-4 mr-2" />;
+      return <FileText className="min-h-4 min-w-4 mr-2" />;
     }
   };
 
@@ -98,13 +125,14 @@ export default function FileCard({ file, url_signed_file }: FileCardProps) {
       <Card key={file.id} className="w-[350px] relative">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center">
+            <CardTitle className="flex items-center break-all">
               {renderFileIcon()}
-              {file.fileName}
+              <span className="ml-2">{file.fileName}</span>
             </CardTitle>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="h-8 w-8 p-0">
+                <Button variant="outline" className="min-h-8 min-w-8 ml-4 p-0">
                   <span className="sr-only">Open menu</span>
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
@@ -144,7 +172,7 @@ export default function FileCard({ file, url_signed_file }: FileCardProps) {
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={() => handleViewFile()}
                   className="flex items-center cursor-pointer"
                 >
                   <EyeIcon className="h-4 w-4 mr-2" />
@@ -170,7 +198,7 @@ export default function FileCard({ file, url_signed_file }: FileCardProps) {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           fileName={file.fileName}
-          fileUrl={file.url}
+          fileUrl={url_signed_file}
         />
       )}
 
@@ -179,7 +207,7 @@ export default function FileCard({ file, url_signed_file }: FileCardProps) {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           fileName={file.fileName}
-          fileUrl={url_signed_file}
+          fileUrl={file.url}
         />
       )}
     </>

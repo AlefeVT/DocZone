@@ -2,25 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import FileUploadDropzone from './_components/fileUploadDropzone';
 import SelectedFileCard from './_components/selectedFileCard';
-import { Label } from '@/components/ui/label';
 import { SubmitButton } from '@/components/SubmitButtons';
 import { DocumentCreateController } from '../../../controller/document/DocumentCreateController';
 import { useRouter } from 'next/navigation';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { GetContainersWithoutChildren } from '../../container/actions';
 import { fileUploadSchema } from '@/schemas';
+import { toast } from 'sonner';
+import SearchableSelect from '@/components/SearchableSelect';
 
 type ErrorState = {
   selectedFile?: string;
@@ -30,11 +22,14 @@ type ErrorState = {
 type SelectItemType = {
   value: string;
   label: string;
+  description?: string;
 };
 
 export default function DocumentCreateView() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [selectedContainer, setSelectedContainer] = useState<string>('');
+  const [selectedContainer, setSelectedContainer] = useState<string | null>(
+    null
+  );
   const [errors, setErrors] = useState<ErrorState>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [containers, setContainers] = useState<SelectItemType[]>([]);
@@ -47,6 +42,7 @@ export default function DocumentCreateView() {
         data.map((container: any) => ({
           value: container.id,
           label: container.name,
+          description: container.description || '',
         }))
       );
     };
@@ -56,11 +52,20 @@ export default function DocumentCreateView() {
   const handleSuccess = () => {
     setSelectedFiles([]);
     setErrors({});
+    toast('Documento criado com sucesso', {
+      icon: <CheckCircle />,
+      description: 'O documento foi criado e salvo corretamente.',
+    });
     router.push('/dashboard/document');
   };
 
   const handleError = (errorState: ErrorState) => {
     console.error('Erro na validação (view):', errorState);
+    toast('Erro ao criar documento', {
+      icon: <AlertCircle />,
+      description:
+        'Houve um problema ao criar o documento. Por favor, tente novamente.',
+    });
     setErrors(errorState);
   };
 
@@ -72,18 +77,8 @@ export default function DocumentCreateView() {
     }
   };
 
-  const handleContainerChange = (value: string) => {
-    setSelectedContainer(value);
-    clearContainerError();
-  };
-
   const clearFileError = () =>
     setErrors((prevErrors) => ({ ...prevErrors, selectedFile: undefined }));
-  const clearContainerError = () =>
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      selectedContainer: undefined,
-    }));
 
   const validateForm = () => {
     const validationInput = { selectedFile: selectedFiles, selectedContainer };
@@ -113,13 +108,18 @@ export default function DocumentCreateView() {
       try {
         await DocumentCreateController.handleSubmit(
           selectedFiles,
-          selectedContainer,
+          selectedContainer!,
           setIsLoading,
           handleSuccess,
           handleError
         );
       } catch (error) {
         console.error('Erro durante o envio (view):', error);
+        toast('Erro ao enviar documento', {
+          icon: <AlertCircle />,
+          description:
+            'Ocorreu um erro ao enviar o documento. Tente novamente.',
+        });
         setIsLoading(false);
       }
     } else {
@@ -139,35 +139,13 @@ export default function DocumentCreateView() {
       </div>
 
       <form onSubmit={handleSubmit} className="w-full space-y-4">
-        <div className="space-y-2 mb-10">
-          <Label
-            htmlFor="selectedContainer"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Selecione a Caixa
-          </Label>
-          <Select
-            onValueChange={handleContainerChange}
-            value={selectedContainer}
-          >
-            <SelectTrigger className="w-1/2 p-2 border border-gray-300 rounded-md">
-              <SelectValue placeholder="Selecione a Caixa" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Caixas Disponíveis</SelectLabel>
-                {containers.map((container) => (
-                  <SelectItem key={container.value} value={container.value}>
-                    {container.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          {errors.selectedContainer && (
-            <p className="text-red-500">{errors.selectedContainer}</p>
-          )}
-        </div>
+        <SearchableSelect
+          items={containers}
+          selectedValue={selectedContainer}
+          onValueChange={setSelectedContainer}
+          label="Selecione a Caixa"
+          error={errors.selectedContainer}
+        />
 
         {selectedFiles.length === 0 ? (
           <div className="space-y-2">
@@ -185,18 +163,6 @@ export default function DocumentCreateView() {
                 key={index}
                 fileName={file.name}
                 fileSize={file.size}
-                onRemove={() =>
-                  DocumentCreateController.handleRemoveFile(
-                    index,
-                    selectedFiles,
-                    setSelectedFiles,
-                    (message) =>
-                      setErrors((prevErrors) => ({
-                        ...prevErrors,
-                        selectedFile: message,
-                      }))
-                  )
-                }
               />
             ))}
           </div>
