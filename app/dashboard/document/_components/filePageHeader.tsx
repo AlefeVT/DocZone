@@ -16,9 +16,9 @@ export function Header({
 }) {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 space-y-4 sm:space-y-0">
-      <div>
+      <div className='flex flex-col'>
         {/* <h2 className="text-xl sm:text-2xl font-extrabold">Documentos</h2> */}
-        <h2 className="text-1xl font-semibold text-gray-800 sm:text-2xl">
+        <h2 className="text-2xl font-bold text-gray-800 sm:text-2xl">
           Documentos
         </h2>
         <p className="text-sm sm:text-md font-semibold text-muted-foreground">

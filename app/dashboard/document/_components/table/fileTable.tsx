@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
+  CircleAlert,
   Download,
   Edit2,
   EyeIcon,
@@ -38,6 +39,7 @@ import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FileViewerModals } from './fileViewerModals';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface FileTableProps {
   files: FileData[];
@@ -56,11 +58,18 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
     if (file.fileType === 'application/pdf') {
       const pdfUrl = `/api/file-stream?fileId=${file.id}`;
       setFileUrl(pdfUrl);
-    } else {
+    } else if (file.fileType.startsWith("image/")) {
       setFileUrl(file.url);
+    } else {
+      toast("Visualização não suportada",{
+        icon: <CircleAlert />,
+        description: "Só é possível visualizar PDFs e imagens.",
+      });
     }
     setSelectedFile(file);
+
   };
+
 
   const confirmDeleteSelectedFiles = () => {
     const selectedFileIds = Object.keys(rowSelection)

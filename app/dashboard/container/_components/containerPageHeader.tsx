@@ -5,7 +5,14 @@ import Link from 'next/link';
 export function Header() {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-4 sm:space-y-0">
-      <h2 className="text-xl sm:text-2xl font-bold">Caixas</h2>
+
+      <div className='flex flex-col'>
+        <h2 className="text-xl sm:text-2xl font-bold">Caixas</h2>
+        <p className="text-sm sm:text-md font-semibold text-muted-foreground">
+          Organize os documentos cadastrando as caixas onde eles serão armazenados.
+        </p>
+      </div>
+
       <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
         <Button className="w-full sm:w-auto">
           <Link

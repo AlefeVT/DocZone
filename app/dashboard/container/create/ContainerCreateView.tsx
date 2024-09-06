@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronsUpDown, Check } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,20 +12,24 @@ import { Textarea } from '@/components/ui/textarea';
 import { createContainer } from './actions';
 import { toast } from 'sonner';
 import { listContainers } from '../actions';
+import SearchableSelect from '@/components/SearchableSelect';
+
+type ContainerData = {
+  id: string;
+  name: string;
+  description?: string | null;
+};
 
 export default function ContainerCreateView() {
   const [name, setName] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [parentId, setParentId] = useState<string | null>(null);
   const [containers, setContainers] = useState<ContainerData[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>('');
   const [errors, setErrors] = useState<{ name?: string; description?: string }>(
     {}
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [open, setOpen] = useState(false);
   const router = useRouter();
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function fetchContainers() {
@@ -39,22 +43,6 @@ export default function ContainerCreateView() {
 
     fetchContainers();
   }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [dropdownRef]);
 
   const handleSuccess = () => {
     setName('');
@@ -86,11 +74,6 @@ export default function ContainerCreateView() {
       setIsLoading(false);
     }
   };
-
-  // Filtra os containers pelo nome com base no valor da busca
-  const filteredContainers = containers.filter((container) =>
-    container.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
     <div className="flex flex-col items-center p-4">
@@ -153,66 +136,18 @@ export default function ContainerCreateView() {
         </div>
 
         <div className="space-y-2">
-          <Label
-            htmlFor="parent"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Caixa Pai (Opcional)
-          </Label>
-
-          <div ref={dropdownRef} className="relative w-[300px]">
-            <Button
-              type="button"
-              onClick={() => setOpen(!open)}
-              variant="outline"
-              className="w-[300px] flex justify-between items-center"
-            >
-              {parentId
-                ? containers.find((container) => container.id === parentId)
-                    ?.name
-                : 'Selecione uma caixa...'}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-
-            {open && (
-              <div className="absolute z-10 bg-white border border-gray-300 rounded-md w-full mt-2 p-2">
-                <Input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar caixa..."
-                  className="w-full p-2 mb-2 border border-gray-300 rounded-md"
-                />
-
-                {filteredContainers.length > 0 ? (
-                  <ul className="max-h-48 overflow-y-auto">
-                    {filteredContainers.map((container) => (
-                      <li
-                        key={container.id}
-                        className="flex items-center justify-between p-2 cursor-pointer hover:bg-gray-100"
-                        title={container.description || 'Sem descrição'}
-                        onClick={() => {
-                          setParentId(
-                            container.id === parentId ? null : container.id
-                          );
-                          setOpen(false);
-                        }}
-                      >
-                        <span>{container.name}</span>
-                        {parentId === container.id && (
-                          <Check className="h-4 w-4 text-green-500" />
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-gray-500">
-                    Nenhuma caixa encontrada.
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+          <SearchableSelect
+            items={containers.map((container) => ({
+              value: container.id,
+              label: container.name,
+              description: container.description || undefined,
+            }))}
+            selectedValue={parentId}
+            onValueChange={setParentId}
+            label="Caixa Pai (Opcional)"
+            placeholder="Selecione uma caixa pai..."
+            error={errors.name}
+          />
         </div>
 
         <div className="flex justify-end">
