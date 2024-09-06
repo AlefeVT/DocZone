@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { SearchIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -34,16 +34,22 @@ const ContainerTree = ({ onSelectContainer }: ContainerTreeProps) => {
   }, []);
 
   // Função recursiva para pesquisar tanto em containers pais quanto filhos
-  const filterContainers = (container: Container, query: string): boolean => {
-    const lowerCaseQuery = query.toLowerCase();
-    const matchesNameOrDescription =
-      container.name.toLowerCase().includes(lowerCaseQuery) ||
-      (container.description && container.description.toLowerCase().includes(lowerCaseQuery));
+  const filterContainers = useCallback(
+    (container: Container, query: string): boolean => {
+      const lowerCaseQuery = query.toLowerCase();
+      const matchesNameOrDescription =
+        container.name.toLowerCase().includes(lowerCaseQuery) ||
+        (container.description &&
+          container.description.toLowerCase().includes(lowerCaseQuery));
 
-    const matchesChildren = container.children.some((child) => filterContainers(child, query));
+      const matchesChildren = container.children.some((child) =>
+        filterContainers(child, query)
+      );
 
-    return matchesNameOrDescription || matchesChildren;
-  };
+      return matchesNameOrDescription || matchesChildren;
+    },
+    []
+  );
 
   // Filtra e expande os containers com base na busca
   useEffect(() => {
@@ -53,15 +59,17 @@ const ContainerTree = ({ onSelectContainer }: ContainerTreeProps) => {
       return;
     }
 
-    const filtered = containers.filter((container) => filterContainers(container, searchQuery));
+    const filtered = containers.filter((container) =>
+      filterContainers(container, searchQuery)
+    );
 
-    // Atualiza os containers filtrados e abre os pais dos containers que correspondem à pesquisa
     setFilteredContainers(filtered);
 
-    // Abre todos os containers que contêm filhos correspondentes à pesquisa
     const openContainersSet = new Set<string>();
     const findParentsToOpen = (container: Container) => {
-      if (container.children.some((child) => filterContainers(child, searchQuery))) {
+      if (
+        container.children.some((child) => filterContainers(child, searchQuery))
+      ) {
         openContainersSet.add(container.id);
       }
       container.children.forEach(findParentsToOpen);
@@ -69,7 +77,7 @@ const ContainerTree = ({ onSelectContainer }: ContainerTreeProps) => {
 
     containers.forEach(findParentsToOpen);
     setOpenContainers(Array.from(openContainersSet));
-  }, [searchQuery, containers]);
+  }, [searchQuery, containers, filterContainers]);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
@@ -77,10 +85,11 @@ const ContainerTree = ({ onSelectContainer }: ContainerTreeProps) => {
   };
 
   const handleToggleContainer = (containerId: string) => {
-    setOpenContainers((prev) =>
-      prev.includes(containerId)
-        ? prev.filter((id) => id !== containerId) // Fecha se já estiver aberto
-        : [...prev, containerId] // Abre se estiver fechado
+    setOpenContainers(
+      (prev) =>
+        prev.includes(containerId)
+          ? prev.filter((id) => id !== containerId) // Fecha se já estiver aberto
+          : [...prev, containerId] // Abre se estiver fechado
     );
   };
 
@@ -106,7 +115,7 @@ const ContainerTree = ({ onSelectContainer }: ContainerTreeProps) => {
       </div>
       <Card className="flex justify-around max-w-full max-h-[400px] overflow-y-auto overflow-x-auto">
         {paginatedContainers.map((container) => (
-          <div className='my-6'>
+          <div className="my-6" key={container.id}>
             <ContainerNode
               key={container.id}
               container={container}
@@ -117,26 +126,24 @@ const ContainerTree = ({ onSelectContainer }: ContainerTreeProps) => {
               isRoot
             />
           </div>
-
         ))}
       </Card>
-      <div className="flex justify-end items-center mt-4">
+      <div className="flex justify-end items-center gap-2 mt-4">
         <Button
+          variant="outline"
+          size="sm"
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          variant="ghost"
         >
           Anterior
         </Button>
-        <span className="text-muted-foreground text-sm">
-          Página {currentPage} de {totalPages}
-        </span>
         <Button
+          variant="outline"
+          size="sm"
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          variant="ghost"
         >
-          Próxima
+          Próximo
         </Button>
       </div>
     </div>

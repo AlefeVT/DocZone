@@ -1,7 +1,6 @@
 import { currentUser } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { s3Client } from '../s3client-config';
 
 class FileService {
   static prisma = new PrismaClient();
@@ -102,7 +101,10 @@ class FileController {
         updatedFile,
       });
     } catch (error) {
-      console.error('Erro ao atualizar o nome do arquivo no banco de dados:', error);
+      console.error(
+        'Erro ao atualizar o nome do arquivo no banco de dados:',
+        error
+      );
       return FileController.createJsonResponse(
         { error: 'Falha ao atualizar o nome do arquivo' },
         500

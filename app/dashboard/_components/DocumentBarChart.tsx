@@ -8,6 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  ResponsiveContainer,
 } from 'recharts';
 
 interface BarChartProps {
@@ -16,15 +17,17 @@ interface BarChartProps {
 
 export function DocumentBarChart({ data }: BarChartProps) {
   return (
-    <div className="w-full h-34">
-      <BarChart width={450} height={200} data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Bar dataKey="documentos" fill="#576389" />
-      </BarChart>
+    <div className="w-full h-64">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Bar dataKey="documentos" fill="#576389" />
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }

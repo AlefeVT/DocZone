@@ -18,12 +18,14 @@ export default function ContainerCreateView() {
   const [description, setDescription] = useState<string>('');
   const [parentId, setParentId] = useState<string | null>(null);
   const [containers, setContainers] = useState<ContainerData[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>(''); // Estado para o valor de busca
-  const [errors, setErrors] = useState<{ name?: string; description?: string }>({});
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [errors, setErrors] = useState<{ name?: string; description?: string }>(
+    {}
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [open, setOpen] = useState(false); // Controla a abertura do popover
+  const [open, setOpen] = useState(false);
   const router = useRouter();
-  const dropdownRef = useRef<HTMLDivElement>(null); // Referência para o dropdown
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function fetchContainers() {
@@ -38,10 +40,12 @@ export default function ContainerCreateView() {
     fetchContainers();
   }, []);
 
-  // Fecha o seletor ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setOpen(false);
       }
     };
@@ -101,7 +105,10 @@ export default function ContainerCreateView() {
 
       <form onSubmit={handleSubmit} className="w-full space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          <Label
+            htmlFor="name"
+            className="block text-sm font-medium text-gray-700"
+          >
             Nome da caixa
           </Label>
           <Input
@@ -122,7 +129,10 @@ export default function ContainerCreateView() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="description" className="block text-sm font-medium text-gray-700">
+          <Label
+            htmlFor="description"
+            className="block text-sm font-medium text-gray-700"
+          >
             Descrição (Opcional)
           </Label>
           <Textarea
@@ -137,22 +147,29 @@ export default function ContainerCreateView() {
             className="block w-[800px] p-2 border border-gray-300 rounded-md"
             placeholder="Descreva a caixa (opcional)"
           />
-          {errors.description && <p className="text-red-500">{errors.description}</p>}
+          {errors.description && (
+            <p className="text-red-500">{errors.description}</p>
+          )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="parent" className="block text-sm font-medium text-gray-700">
+          <Label
+            htmlFor="parent"
+            className="block text-sm font-medium text-gray-700"
+          >
             Caixa Pai (Opcional)
           </Label>
 
           <div ref={dropdownRef} className="relative w-[300px]">
             <Button
+              type="button"
               onClick={() => setOpen(!open)}
               variant="outline"
               className="w-[300px] flex justify-between items-center"
             >
               {parentId
-                ? containers.find((container) => container.id === parentId)?.name
+                ? containers.find((container) => container.id === parentId)
+                    ?.name
                 : 'Selecione uma caixa...'}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
@@ -175,17 +192,23 @@ export default function ContainerCreateView() {
                         className="flex items-center justify-between p-2 cursor-pointer hover:bg-gray-100"
                         title={container.description || 'Sem descrição'}
                         onClick={() => {
-                          setParentId(container.id === parentId ? null : container.id);
+                          setParentId(
+                            container.id === parentId ? null : container.id
+                          );
                           setOpen(false);
                         }}
                       >
                         <span>{container.name}</span>
-                        {parentId === container.id && <Check className="h-4 w-4 text-green-500" />}
+                        {parentId === container.id && (
+                          <Check className="h-4 w-4 text-green-500" />
+                        )}
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-sm text-gray-500">Nenhuma caixa encontrada.</p>
+                  <p className="text-sm text-gray-500">
+                    Nenhuma caixa encontrada.
+                  </p>
                 )}
               </div>
             )}
