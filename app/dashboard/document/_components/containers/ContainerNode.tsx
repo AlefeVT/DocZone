@@ -11,47 +11,47 @@ interface ContainerNodeProps {
   isRoot: boolean;
 }
 
-const ContainerNode = ({
+const ContainerNode: React.FC<ContainerNodeProps> = ({
   container,
   isOpen,
   onSelect,
   onToggle,
   openContainers,
-}: ContainerNodeProps) => {
+}) => {
   const handleSelectContainer = () => {
     onSelect(container.id);
+  };
+
+  const handleToggleContainer = () => {
+    if (container.children.length === 0) {
+      handleSelectContainer();
+    }
+    onToggle(container.id);
   };
 
   return (
     <div className="pl-4">
       <Button
-        onClick={() => {
-          if (container.children.length === 0) {
-            handleSelectContainer();
-          }
-          onToggle(container.id);
-        }}
-        className="flex p-4 items-center text-blue-600 hover:text-blue-800"
+        onClick={handleToggleContainer}
+        className="flex items-center space-x-2 p-2 text-blue-600 hover:text-blue-800"
         variant="ghost"
-        title={container.description || ''}
+        title={container.description || 'Sem descrição disponível'}
       >
         {container.children.length > 0 ? (
           <ChevronRight
-            className={`transform transition-transform ${isOpen ? 'rotate-90' : ''}`}
+            className={`transform transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
             size={20}
           />
         ) : (
-          <ExternalLink
-            size={15}
-            className="mr-2"
-            onClick={handleSelectContainer}
-          />
+          <ExternalLink size={16} className="text-gray-500" onClick={handleSelectContainer} />
         )}
-        <Package className="mr-2" size={20} />
-        {container.name}
+        <Package size={20} className="text-gray-600" />
+        <span className="text-base font-medium">{container.name}</span>
       </Button>
+
+      {/* Renderiza os containers filhos, se abertos */}
       {isOpen && container.children.length > 0 && (
-        <div className="pl-4">
+        <div className="pl-6">
           {container.children.map((child) => (
             <ContainerNode
               key={child.id}
