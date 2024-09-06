@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { SearchIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Container } from '@/interfaces/ContainerTree';
 
 import ContainerNode from './ContainerNode';
@@ -18,14 +17,14 @@ const ContainerTree = ({ onSelectContainer }: ContainerTreeProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [openContainers, setOpenContainers] = useState<string[]>([]);
-  const itemsPerPage = 3;
+  const itemsPerPage = 6;
 
   useEffect(() => {
     const fetchContainers = async () => {
       try {
         const data = await GETContainers();
         setContainers(data);
-        setFilteredContainers(data); // Inicialmente, todos os containers são exibidos
+        setFilteredContainers(data);
       } catch (error) {
         console.error('Erro ao buscar containers:', error);
       }
@@ -33,7 +32,6 @@ const ContainerTree = ({ onSelectContainer }: ContainerTreeProps) => {
     fetchContainers();
   }, []);
 
-  // Função recursiva para pesquisar tanto em containers pais quanto filhos
   const filterContainers = useCallback(
     (container: Container, query: string): boolean => {
       const lowerCaseQuery = query.toLowerCase();
@@ -51,10 +49,9 @@ const ContainerTree = ({ onSelectContainer }: ContainerTreeProps) => {
     []
   );
 
-  // Filtra e expande os containers com base na busca
   useEffect(() => {
     if (!searchQuery) {
-      setFilteredContainers(containers); // Se não houver busca, mostra todos os containers
+      setFilteredContainers(containers);
       setOpenContainers([]);
       return;
     }
@@ -81,15 +78,14 @@ const ContainerTree = ({ onSelectContainer }: ContainerTreeProps) => {
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
-    setCurrentPage(1); // Reseta a página ao iniciar uma nova busca
+    setCurrentPage(1);
   };
 
   const handleToggleContainer = (containerId: string) => {
-    setOpenContainers(
-      (prev) =>
-        prev.includes(containerId)
-          ? prev.filter((id) => id !== containerId) // Fecha se já estiver aberto
-          : [...prev, containerId] // Abre se estiver fechado
+    setOpenContainers((prev) =>
+      prev.includes(containerId)
+        ? prev.filter((id) => id !== containerId)
+        : [...prev, containerId]
     );
   };
 
@@ -102,22 +98,26 @@ const ContainerTree = ({ onSelectContainer }: ContainerTreeProps) => {
   const handlePageChange = (newPage: number) => setCurrentPage(newPage);
 
   return (
-    <div className="mx-auto">
-      <div className="relative w-full sm:w-1/2 mb-5">
-        <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+    <div className="mx-auto max-w-full px-4">
+
+      <div className="relative w-1/2 mb-6">
+        <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         <Input
           type="text"
           placeholder="Busque pelo nome ou descrição das caixas..."
-          className="pl-8 w-full"
+          className="pl-10 w-full border border-gray-300 rounded-md shadow-sm"
           value={searchQuery}
           onChange={handleSearchChange}
         />
       </div>
-      <Card className="flex justify-around max-w-full max-h-[400px] overflow-y-auto overflow-x-auto">
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {paginatedContainers.map((container) => (
-          <div className="my-6" key={container.id}>
+          <div
+            key={container.id}
+            className="bg-gray-100 border-l-4 border-blue-500 rounded-md shadow-lg p-4"
+          >
             <ContainerNode
-              key={container.id}
               container={container}
               isOpen={openContainers.includes(container.id)}
               onSelect={onSelectContainer}
@@ -127,8 +127,10 @@ const ContainerTree = ({ onSelectContainer }: ContainerTreeProps) => {
             />
           </div>
         ))}
-      </Card>
-      <div className="flex justify-end items-center gap-2 mt-4">
+      </div>
+
+      {/* Paginação */}
+      <div className="flex justify-between items-center mt-6">
         <Button
           variant="outline"
           size="sm"
@@ -137,6 +139,9 @@ const ContainerTree = ({ onSelectContainer }: ContainerTreeProps) => {
         >
           Anterior
         </Button>
+        <span className="text-sm text-gray-600">
+          Página {currentPage} de {totalPages}
+        </span>
         <Button
           variant="outline"
           size="sm"

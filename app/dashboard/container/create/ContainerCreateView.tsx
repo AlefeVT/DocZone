@@ -86,7 +86,7 @@ export default function ContainerCreateView() {
         <h2 className="text-2xl font-bold">Cadastrar Caixas</h2>
       </div>
 
-      <form onSubmit={handleSubmit} className="w-full space-y-4">
+      <form onSubmit={handleSubmit} className="w-full ml-5 space-y-4">
         <div className="space-y-2">
           <Label
             htmlFor="name"
@@ -104,7 +104,7 @@ export default function ContainerCreateView() {
                 setErrors({ ...errors, name: undefined });
               }
             }}
-            className="block w-[700px] p-2 border border-gray-300 rounded-md"
+            className="block w-full max-w-2xl p-2 border border-gray-300 rounded-md"
             placeholder="Digite o nome da caixa"
             required
           />
@@ -127,7 +127,7 @@ export default function ContainerCreateView() {
                 setErrors({ ...errors, description: undefined });
               }
             }}
-            className="block w-[800px] p-2 border border-gray-300 rounded-md"
+            className="block w-full max-w-2xl p-2 border border-gray-300 rounded-md"
             placeholder="Descreva a caixa (opcional)"
           />
           {errors.description && (

@@ -67,9 +67,7 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
       });
     }
     setSelectedFile(file);
-
   };
-
 
   const confirmDeleteSelectedFiles = () => {
     const selectedFileIds = Object.keys(rowSelection)
