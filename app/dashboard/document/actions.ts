@@ -1,4 +1,4 @@
-"use server";
+'use server';
 
 import { PrismaClient } from '@prisma/client';
 
@@ -38,21 +38,23 @@ async function fetchChildren(containerId: string): Promise<ContainerData[]> {
       name: child.name,
       description: child.description,
       createdAt: child.createdAt.toISOString(),
-      files: await prisma.file.findMany({
-        where: { containerId: child.id },
-        select: {
-          id: true,
-          fileName: true,
-          fileSize: true,
-          fileType: true,
-          createdAt: true,
-        },
-      }).then((files) =>
-        files.map((file) => ({
-          ...file,
-          createdAt: file.createdAt.toISOString(),
-        }))
-      ),
+      files: await prisma.file
+        .findMany({
+          where: { containerId: child.id },
+          select: {
+            id: true,
+            fileName: true,
+            fileSize: true,
+            fileType: true,
+            createdAt: true,
+          },
+        })
+        .then((files) =>
+          files.map((file) => ({
+            ...file,
+            createdAt: file.createdAt.toISOString(),
+          }))
+        ),
       children: await fetchChildren(child.id), // Recurse nos filhos
     }))
   );

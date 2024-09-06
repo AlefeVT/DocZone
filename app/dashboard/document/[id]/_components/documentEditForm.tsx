@@ -10,22 +10,8 @@ import SelectedFileCard from '../../create/_components/selectedFileCard';
 import { SubmitButton } from '@/components/SubmitButtons';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { DocumentData } from '@/interfaces/DocumentData';
 import { DocumentEditController } from '@/app/controller/document/DocumentEditController';
-
-type SelectItemType = {
-  value: string;
-  label: string;
-};
 
 export function DocumentEditForm({
   initialData,
@@ -46,12 +32,7 @@ export function DocumentEditForm({
   }>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
-  const [containers, setContainers] = useState<SelectItemType[]>([]);
   const [data, setData] = useState<DocumentData>(initialData);
-
-  useEffect(() => {
-    DocumentEditController.fetchContainers(setContainers);
-  }, []);
 
   useEffect(() => {
     async function fetchUpdatedData() {
@@ -66,14 +47,6 @@ export function DocumentEditForm({
 
     fetchUpdatedData();
   }, [data.id]);
-
-  function handleContainerChange(value: string) {
-    setSelectedContainer(value);
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      selectedContainer: undefined,
-    }));
-  }
 
   function validateForm() {
     const validationInput = {
@@ -153,7 +126,9 @@ export function DocumentEditForm({
         </div>
 
         <SelectedFileCard
-          fileName={selectedFile ? selectedFile.name : 'Arquivo não selecionado'}
+          fileName={
+            selectedFile ? selectedFile.name : 'Arquivo não selecionado'
+          }
           fileSize={selectedFile ? selectedFile.size : 0}
         />
 

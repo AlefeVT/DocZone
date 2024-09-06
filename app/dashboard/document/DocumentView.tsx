@@ -63,7 +63,7 @@ export default function DocumentView() {
 
       <Separator className="mt-5 mb-5" />
 
-      <h2>Documentos</h2>
+      {/* <h2 className='text-1xl font-semibold text-gray-800 sm:text-2xl'>Documentos</h2> */}
 
       <div className="flex flex-col sm:flex-row justify-between items-center mt-7 mb-5 space-y-4 sm:space-y-0">
         <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />

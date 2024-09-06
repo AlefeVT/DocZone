@@ -286,7 +286,10 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
                   colSpan={table.getAllColumns().length}
                   className="h-24 text-center"
                 >
-                  Nenhum arquivo encontrado.
+                  <div className="font-medium">
+                    Nenhum arquivo encontrado. Selecione uma caixa para listar
+                    seus documentos
+                  </div>
                 </TableCell>
               </TableRow>
             )}

@@ -1,4 +1,4 @@
-import { ChevronRight, Package, Eye, ExternalLink } from 'lucide-react';
+import { ChevronRight, Package, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Container } from '@/interfaces/ContainerTree';
 
@@ -7,7 +7,7 @@ interface ContainerNodeProps {
   isOpen: boolean;
   onSelect: (containerId: string) => void;
   onToggle: (containerId: string) => void;
-  openContainers: string[]; 
+  openContainers: string[];
   isRoot: boolean;
 }
 
@@ -41,7 +41,11 @@ const ContainerNode = ({
             size={20}
           />
         ) : (
-          <ExternalLink size={15} className="mr-2" onClick={handleSelectContainer} />
+          <ExternalLink
+            size={15}
+            className="mr-2"
+            onClick={handleSelectContainer}
+          />
         )}
         <Package className="mr-2" size={20} />
         {container.name}
@@ -52,10 +56,10 @@ const ContainerNode = ({
             <ContainerNode
               key={child.id}
               container={child}
-              isOpen={openContainers.includes(child.id)} 
+              isOpen={openContainers.includes(child.id)}
               onSelect={onSelect}
               onToggle={onToggle}
-              openContainers={openContainers} 
+              openContainers={openContainers}
               isRoot={false}
             />
           ))}

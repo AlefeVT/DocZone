@@ -17,10 +17,10 @@ const links = [
     name: 'Caixas',
     href: '/dashboard/container',
   },
-  {
-    name: 'Assinaturas',
-    href: '/dashboard/signature',
-  },
+  // {
+  //   name: 'Assinaturas',
+  //   href: '/dashboard/signature',
+  // },
 ];
 export function DashboardNavigation() {
   const pathname = usePathname();
