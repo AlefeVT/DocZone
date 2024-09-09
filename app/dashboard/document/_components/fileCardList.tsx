@@ -3,10 +3,12 @@
 import React, { useState } from 'react';
 import FileCard from './fileCard';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
 interface FileData {
   id: string;
   fileName: string;
+  fileSize: string;
   url: string;
   fileType: string;
   createdAt: string;
@@ -40,33 +42,47 @@ export default function FileCardList({ files }: FileCardListProps) {
 
   return (
     <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {currentFiles.map((file) => (
-          <FileCard
-            url_signed_file={`/api/file-stream?fileId=${file.id}`}
-            key={file.id}
-            file={file}
+      {files.length === 0 ? (
+        <div className="font-medium gap-4 p-4 items-center flex flex-col text-center">
+          <Image
+            height={150}
+            width={150}
+            src="/empty.svg"
+            alt="Imagem vazia"
           />
-        ))}
-      </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handlePreviousPage}
-          disabled={currentPage === 1}
-        >
-          Anterior
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleNextPage}
-          disabled={currentPage === totalPages}
-        >
-          Próximo
-        </Button>
-      </div>
+          Nenhum arquivo encontrado. Selecione uma caixa para listar seus documentos.
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {currentFiles.map((file) => (
+              <FileCard
+                url_signed_file={`/api/file-stream?fileId=${file.id}`}
+                key={file.id}
+                file={file}
+              />
+            ))}
+          </div>
+          <div className="flex items-center justify-end space-x-2 py-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+            >
+              Anterior
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+            >
+              Próximo
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -97,3 +97,10 @@ export const fileUpdateSchema = z.object({
     }),
   selectedContainer: z.string().min(1, 'Por favor, selecione uma caixa'),
 });
+
+export const contactFormSchema = z.object({
+  name: z.string().min(2, { message: "Nome deve ter pelo menos 2 caracteres" }),
+  email: z.string().email({ message: "Email inválido" }),
+  message: z.string().min(10, { message: "Mensagem deve ter pelo menos 10 caracteres" }),
+});
+
