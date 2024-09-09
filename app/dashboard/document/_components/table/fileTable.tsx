@@ -40,6 +40,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FileViewerModals } from './fileViewerModals';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 interface FileTableProps {
   files: FileData[];
@@ -61,7 +62,7 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
     } else if (file.fileType.startsWith("image/")) {
       setFileUrl(file.url);
     } else {
-      toast("Visualização não suportada",{
+      toast("Visualização não suportada", {
         icon: <CircleAlert />,
         description: "Só é possível visualizar PDFs e imagens.",
       });
@@ -262,9 +263,9 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableCell>
                 ))}
               </TableRow>
@@ -293,9 +294,14 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
                   colSpan={table.getAllColumns().length}
                   className="h-24 text-center"
                 >
-                  <div className="font-medium">
-                    Nenhum arquivo encontrado. Selecione uma caixa para listar
-                    seus documentos
+                  <div className="font-medium gap-4 p-4 items-center flex flex-col text-center">
+                    <Image
+                      height={150}
+                      width={150}
+                      src="/empty.svg"
+                      alt="Imagem vazia"
+                    />
+                    Nenhum arquivo encontrado. Selecione uma caixa para listar seus documentos.
                   </div>
                 </TableCell>
               </TableRow>
