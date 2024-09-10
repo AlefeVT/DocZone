@@ -19,15 +19,27 @@ export default function DeleteRoute({ params }: { params: { id: string } }) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
+  const containerIds = decodeURIComponent(params.id).split(',');
+
+  const isMultiple = containerIds.length > 1;
+
+  const title = isMultiple
+    ? 'Você tem certeza absoluta que deseja excluir essas caixas?'
+    : 'Você tem certeza absoluta que deseja excluir essa caixa?';
+
+  const description = isMultiple
+    ? 'Isso excluirá permanentemente todos os documentos que estão dentro dessas caixas e removerá todos os dados de nossos servidores.'
+    : 'Isso excluirá permanentemente todos os documentos que estão dentro dessa caixa e removerá todos os dados de nossos servidores.';
+
   const handleDelete = async (containerId: string) => {
     setIsLoading(true);
     try {
       await axios.post('/api/remove-container', { containerId });
-      toast.success('Caixa excluída com sucesso!');
+      toast.success(isMultiple ? 'Caixas excluídas com sucesso!' : 'Caixa excluída com sucesso!');
       router.push('/dashboard/container');
     } catch (error) {
       console.error('Error deleting container:', error);
-      toast.error('Erro ao excluir a caixa.');
+      toast.error(isMultiple ? 'Erro ao excluir as caixas.' : 'Erro ao excluir a caixa.');
     } finally {
       setIsLoading(false);
     }
@@ -42,12 +54,8 @@ export default function DeleteRoute({ params }: { params: { id: string } }) {
     <div className="h-[80vh] w-full flex items-center justify-center">
       <Card className="max-w-xl">
         <CardHeader>
-          <CardTitle>Você tem certeza absoluta?</CardTitle>
-          <CardDescription>
-            Essa ação não pode ser desfeita. Isso excluirá permanentemente todos
-            os documentos que estão dentro dessa caixa e removerá todos os dados
-            de nossos servidores.
-          </CardDescription>
+          <CardTitle>{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardFooter className="w-full flex justify-between">
           <Button variant={'secondary'} asChild>

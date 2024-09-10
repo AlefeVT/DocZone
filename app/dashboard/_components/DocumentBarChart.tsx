@@ -25,7 +25,7 @@ export function DocumentBarChart({ data }: BarChartProps) {
           <YAxis />
           <Tooltip />
           <Legend />
-          <Bar dataKey="documentos" fill="#576389" />
+          <Bar dataKey="documentos" fill="#314da7" />
         </BarChart>
       </ResponsiveContainer>
     </div>

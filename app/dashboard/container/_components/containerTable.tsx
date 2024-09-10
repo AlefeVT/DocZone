@@ -26,14 +26,41 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Edit2, MoreHorizontal, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 interface ContainerTableProps {
-  containers: ContainerData[];
+  containers: ContainerData[]; 
 }
 
 export const columns: ColumnDef<ContainerData>[] = [
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) =>
+          table.toggleAllPageRowsSelected(!!value)
+        }
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     accessorKey: 'name',
     header: 'Nome da Caixa',
@@ -53,8 +80,9 @@ export const columns: ColumnDef<ContainerData>[] = [
   {
     id: 'actions',
     header: 'Ações',
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const container = row.original;
+      const router = useRouter();
 
       return (
         <DropdownMenu>
@@ -85,6 +113,33 @@ export const columns: ColumnDef<ContainerData>[] = [
                 Excluir
               </Link>
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => {
+                const selectedContainers = table.getRowModel().rows.map((row) => row.original);
+
+                const selectedContainerIds = Object.keys(table.getState().rowSelection)
+                  .filter((key) => table.getState().rowSelection[key])
+                  .map((key) => {
+                    const index = parseInt(key, 10);
+                    const selectedContainer = selectedContainers[index]; 
+                    return selectedContainer?.id;
+                  })
+                  .filter((id) => id !== undefined);
+
+                if (selectedContainerIds.length > 0) {
+                  const idsString = selectedContainerIds.join(',');
+                  router.push(`/dashboard/container/${idsString}/delete`);
+                }
+              }}
+              disabled={
+                Object.keys(table.getState().rowSelection).length === 0
+              }
+              className="flex items-center cursor-pointer"
+            >
+              <Trash2 className="h-4 w-4 mr-2 text-red-600" />
+              Excluir Selecionados
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
@@ -93,15 +148,20 @@ export const columns: ColumnDef<ContainerData>[] = [
 ];
 
 export function ContainerTable({ containers }: ContainerTableProps) {
+  const [rowSelection, setRowSelection] = React.useState<
+    Record<string, boolean>
+  >({});
+
   const table = useReactTable({
-    data: containers,
+    data: containers, 
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    meta: {
-      onView: () => {},
+    state: {
+      rowSelection,
     },
+    onRowSelectionChange: setRowSelection,
     initialState: {
       pagination: {
         pageSize: 10,
@@ -132,7 +192,10 @@ export function ContainerTable({ containers }: ContainerTableProps) {
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
@@ -149,7 +212,15 @@ export function ContainerTable({ containers }: ContainerTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Nenhum container encontrado.
+                  <div className="font-medium gap-4 p-4 items-center flex flex-col text-center">
+                    <Image
+                      height={150}
+                      width={150}
+                      src="/empty_folder.svg"
+                      alt="Imagem de pasta vazia"
+                    />
+                    Nenhum container encontrado.
+                  </div>
                 </TableCell>
               </TableRow>
             )}

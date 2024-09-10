@@ -23,7 +23,7 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
   const resetLink = `${domain}/auth/new-password?token=${token}`;
 
   await resend.emails.send({
-    from: 'onboarding@resend.dev',
+    from: 'DocZone - Redefinição de Senha <onboarding@resend.dev>',
     to: email,
     subject: 'Redefinição de Senha',
     html: `
@@ -41,7 +41,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
   const confirmLink = `${domain}/auth/new-verification?token=${token}`;
 
   await resend.emails.send({
-    from: 'onboarding@resend.dev',
+    from: 'DocZone - Confirmação de Email <onboarding@resend.dev>',
     to: email,
     subject: 'Confirmação de Email',
     html: `
