@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { sendContactEmail } from '../actions';
 import { toast } from 'sonner';
-import { z } from 'zod';
 import { contactFormSchema } from '@/schemas';
 import { CheckCircle, XCircle } from 'lucide-react';
 
@@ -33,7 +32,6 @@ export function ContactSection() {
       [id]: value,
     }));
 
-    // Clear errors when user starts typing
     setErrors((prev) => ({
       ...prev,
       [id]: '',
@@ -44,7 +42,6 @@ export function ContactSection() {
     e.preventDefault();
     setLoading(true);
 
-    // Validate the form using Zod
     const validation = contactFormSchema.safeParse(formData);
 
     if (!validation.success) {
@@ -55,7 +52,6 @@ export function ContactSection() {
         }
       });
 
-      // Set the error messages
       setErrors((prev) => ({
         ...prev,
         ...fieldErrors,

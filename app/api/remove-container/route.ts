@@ -65,7 +65,6 @@ class ContainerService {
   static async deleteS3Folder(prefix: string) {
     await this.deleteFilesFromS3(prefix);
 
-    // Deletar a pasta em si (que é representada pelo prefixo)
     const deleteParams = {
       Bucket: process.env.BUCKET_S3!,
       Delete: {
@@ -81,11 +80,19 @@ class ContainerService {
 class ContainerController {
   static async handleRequest(req: NextRequest) {
     const { containerId } = await req.json();
-
     if (!containerId) {
       return this.createJsonResponse(
+        { error: 'Nenhum ID de container fornecido' },
+        400
+      );
+    }
+
+    const decodedContainerIds = decodeURIComponent(containerId).split(',');
+
+    if (!decodedContainerIds || decodedContainerIds.length === 0) {
+      return this.createJsonResponse(
         {
-          error: 'O ID do container é obrigatório e deve ser uma string',
+          error: 'Os IDs dos containers são obrigatórios e devem ser um array de strings',
         },
         400
       );
@@ -98,31 +105,33 @@ class ContainerController {
     }
 
     try {
-      const container = await ContainerService.findContainerByIdAndUser(
-        containerId,
-        user.id
-      );
-
-      if (!container) {
-        return this.createJsonResponse(
-          { error: 'Container não encontrado ou não pertence ao usuário' },
-          404
+      for (const containerId of decodedContainerIds) {
+        const container = await ContainerService.findContainerByIdAndUser(
+          containerId,
+          user.id
         );
+
+        if (!container) {
+          return this.createJsonResponse(
+            { error: `Container com ID ${containerId} não encontrado ou não pertence ao usuário` },
+            404
+          );
+        }
+
+        const prefix = `${user.id}/${containerId}/`;
+
+        // Deletar arquivos dentro da pasta e depois a pasta
+        await ContainerService.deleteS3Folder(prefix);
+        await ContainerService.deleteContainerAndFiles(containerId);
       }
 
-      const prefix = `${user.id}/${containerId}/`;
-
-      // Deletar arquivos dentro da pasta e depois a pasta
-      await ContainerService.deleteS3Folder(prefix);
-      await ContainerService.deleteContainerAndFiles(containerId);
-
       return this.createJsonResponse({
-        message: 'Container e arquivos deletados com sucesso',
+        message: 'Containers e arquivos deletados com sucesso',
       });
     } catch (error) {
-      console.error('Erro ao deletar container e arquivos:', error);
+      console.error('Erro ao deletar containers e arquivos:', error);
       return this.createJsonResponse(
-        { error: 'Falha ao deletar container e arquivos' },
+        { error: 'Falha ao deletar containers e arquivos' },
         500
       );
     } finally {

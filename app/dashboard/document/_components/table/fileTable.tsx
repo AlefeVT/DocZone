@@ -1,5 +1,3 @@
-'use client';
-
 import * as React from 'react';
 import {
   getCoreRowModel,
@@ -96,37 +94,16 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
       {
         id: 'select',
         header: ({ table }) => (
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              checked={
-                table.getIsAllPageRowsSelected() ||
-                (table.getIsSomePageRowsSelected() && 'indeterminate')
-              }
-              onCheckedChange={(value) =>
-                table.toggleAllPageRowsSelected(!!value)
-              }
-              aria-label="Select all"
-            />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={confirmDeleteSelectedFiles}
-                  className="flex items-center cursor-pointer"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Excluir Selecionados
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && 'indeterminate')
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label="Select all"
+          />
         ),
         cell: ({ row }) => (
           <Checkbox
@@ -196,41 +173,37 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
                 <DropdownMenuLabel>Ações</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
-                  <Link
-                    href={`/dashboard/document/${file.id}`}
-                    className="flex items-center w-full"
-                  >
+                  <Link href={`/dashboard/document/${file.id}`} className="flex items-center w-full">
                     <Edit2 className="h-4 w-4 mr-2" />
                     Editar
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleViewFile(file)}
-                  className="flex items-center cursor-pointer"
-                >
+                <DropdownMenuItem onClick={() => handleViewFile(file)} className="flex items-center cursor-pointer">
                   <EyeIcon className="h-4 w-4 mr-2" />
                   Visualizar
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <a
-                    href={file.url}
-                    download={file.fileName}
-                    className="flex items-center cursor-pointer"
-                  >
+                  <a href={file.url} download={file.fileName} className="flex items-center cursor-pointer">
                     <Download className="h-4 w-4 mr-2" />
                     Baixar
                   </a>
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => confirmDeleteFile(file)}
-                  className="flex items-center cursor-pointer text-red-600"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
+                <DropdownMenuItem onClick={() => confirmDeleteFile(file)} className="flex items-center cursor-pointer">
+                  <Trash2 className="h-4 w-4 mr-2 text-red-600" />
                   Excluir
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={confirmDeleteSelectedFiles}
+                  className="flex items-center cursor-pointer"
+                  disabled={Object.keys(rowSelection).length === 0} // Desabilita se não houver arquivos selecionados
+                >
+                  <Trash2 className="h-4 w-4 mr-2 text-red-600" />
+                  Excluir Selecionados
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           );
+          
         },
       },
     ],
@@ -263,9 +236,9 @@ export function FileTable({ files: initialFiles }: FileTableProps) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </TableCell>
                 ))}
               </TableRow>
