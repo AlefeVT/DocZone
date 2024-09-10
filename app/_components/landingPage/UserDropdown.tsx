@@ -1,3 +1,5 @@
+"use client"
+
 import { LogoutButton } from '@/components/auth/logout-button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -9,13 +11,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { LogOut, FileText } from 'lucide-react'; // Importando ícones
 
 interface iAppProps {
   email: string;
   name: string;
   userImage: string | undefined;
 }
+
 export function UserDropdown({ email, name, userImage }: iAppProps) {
+  const handleManualClick = () => {
+    window.open('/manual.pdf', '_blank');
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -33,7 +41,14 @@ export function UserDropdown({ email, name, userImage }: iAppProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          <LogoutButton>Deslogar</LogoutButton>
+          <LogoutButton className='flex items-center w-full'>
+            <LogOut className="mr-2 h-4 w-4" />
+            Deslogar
+          </LogoutButton>
+        </DropdownMenuItem>
+        <DropdownMenuItem className='cursor-pointer' onClick={handleManualClick}>
+          <FileText className="mr-2 h-4 w-4" />
+          Manual
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
