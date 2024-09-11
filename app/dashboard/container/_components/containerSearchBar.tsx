@@ -9,7 +9,7 @@ export function SearchBar({
   setSearchTerm: (value: string) => void;
 }) {
   return (
-    <div className="relative mb-10 w-full sm:w-1/2">
+    <div className="relative w-full sm:w-1/2">
       <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
       <Input
         type="text"
