@@ -1,18 +1,21 @@
-'use client';
-
-import { FileTextIcon } from 'lucide-react';
+import { FileTextIcon, XCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface SelectedFileCardProps {
   fileName: string;
   fileSize: number;
+  showRemoveButton?: boolean;
+  onRemoveClick?: () => void;
 }
 
 export default function SelectedFileCard({
   fileName,
   fileSize,
+  showRemoveButton = false,
+  onRemoveClick,
 }: SelectedFileCardProps) {
   return (
-    <div className="flex items-center justify-between p-4 border rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:border-gray-600">
+    <div className="flex items-center w-full justify-between p-4 border rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:border-gray-600">
       <div className="flex items-center">
         <div className="mr-4">
           <FileTextIcon />
@@ -26,6 +29,17 @@ export default function SelectedFileCard({
           </p>
         </div>
       </div>
+      {showRemoveButton && onRemoveClick && (
+        <Button
+          variant="outline"
+          size="icon"
+          title="Remover"
+          onClick={onRemoveClick}
+          className="ml-2"
+        >
+          <XCircle className="w-6 h-6 text-red-500" />
+        </Button>
+      )}
     </div>
   );
 }

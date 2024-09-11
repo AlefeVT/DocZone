@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -27,9 +27,7 @@ type SelectItemType = {
 
 export default function DocumentCreateView() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [selectedContainer, setSelectedContainer] = useState<string | null>(
-    null
-  );
+  const [selectedContainer, setSelectedContainer] = useState<string | null>(null);
   const [errors, setErrors] = useState<ErrorState>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [containers, setContainers] = useState<SelectItemType[]>([]);
@@ -63,8 +61,7 @@ export default function DocumentCreateView() {
     console.error('Erro na validação (view):', errorState);
     toast('Erro ao criar documento', {
       icon: <AlertCircle />,
-      description:
-        'Houve um problema ao criar o documento. Por favor, tente novamente.',
+      description: 'Houve um problema ao criar o documento. Por favor, tente novamente.',
     });
     setErrors(errorState);
   };
@@ -79,6 +76,10 @@ export default function DocumentCreateView() {
 
   const clearFileError = () =>
     setErrors((prevErrors) => ({ ...prevErrors, selectedFile: undefined }));
+
+  const removeFile = (index: number) => {
+    setSelectedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+  };
 
   const validateForm = () => {
     const validationInput = { selectedFile: selectedFiles, selectedContainer };
@@ -117,8 +118,7 @@ export default function DocumentCreateView() {
         console.error('Erro durante o envio (view):', error);
         toast('Erro ao enviar documento', {
           icon: <AlertCircle />,
-          description:
-            'Ocorreu um erro ao enviar o documento. Tente novamente.',
+          description: 'Ocorreu um erro ao enviar o documento. Tente novamente.',
         });
         setIsLoading(false);
       }
@@ -159,11 +159,15 @@ export default function DocumentCreateView() {
         ) : (
           <div className="space-y-2">
             {selectedFiles.map((file, index) => (
-              <SelectedFileCard
-                key={index}
-                fileName={file.name}
-                fileSize={file.size}
-              />
+             <div key={index} className="flex items-center justify-between w-full">
+             <SelectedFileCard
+               fileName={file.name}
+               fileSize={file.size}
+               showRemoveButton={true}
+               onRemoveClick={() => removeFile(index)}
+             />
+           </div>
+
             ))}
           </div>
         )}
